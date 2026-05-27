@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey_please_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'capstone_project_2026_sangat_rahasia';
 
 export interface TokenPayload {
   id: string;

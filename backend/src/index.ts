@@ -16,7 +16,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pos_kopi';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://yogadwiatmaja_db_user:vS9018PJh8sp1Vh7@cluster0.emzbsi2.mongodb.net/pos_kopi?appName=Cluster0';
 
 // Middlewares
 app.use(cors());
