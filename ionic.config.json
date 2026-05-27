@@ -1,0 +1,7 @@
+{
+  "name": "pos-kedai-kopi",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}

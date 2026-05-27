@@ -1,0 +1,176 @@
+﻿:root {
+  color-scheme: light;
+  /* Modern Color Palette */
+  --ion-color-primary: #d97706;
+  --ion-color-primary-rgb: 217, 119, 6;
+  --ion-color-secondary: #0ea5e9;
+  --ion-color-tertiary: #8b5cf6;
+  --ion-color-success: #10b981;
+  --ion-color-danger: #ef4444;
+  --ion-color-warning: #f59e0b;
+  
+  /* Modern Backgrounds */
+  --ion-background-color: #f8f9fa;
+  --ion-text-color: #111827;
+  --ion-toolbar-background: #ffffff;
+  --ion-border-color: #e5e7eb;
+  
+  /* Panel & Card Colors */
+  --app-panel: #ffffff;
+  --app-panel-2: #f3f4f6;
+  --app-panel-3: #fffbeb;
+  --app-input-bg: #f3f4f6;
+  --app-muted: #6b7280;
+  --app-card-bg: #ffffff;
+  --app-info-bg: rgba(14, 165, 233, 0.08);
+  --app-success-bg: rgba(16, 185, 129, 0.08);
+  --app-warning-bg: rgba(245, 158, 11, 0.08);
+  
+  /* Modern Spacing & Radius */
+  --app-card-radius: 16px;
+  --app-border-radius: 12px;
+  --app-button-radius: 10px;
+  
+  /* Modern Shadows - Depth System */
+  --app-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --app-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --app-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --app-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --app-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --app-soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --app-soft-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+body.dark {
+  color-scheme: dark;
+  /* Dark Theme Colors */
+  --ion-background-color: #0f172a;
+  --ion-text-color: #f1f5f9;
+  --ion-toolbar-background: #1e293b;
+  --ion-border-color: #475569;
+  
+  /* Dark Panels & Cards */
+  --app-panel: #1e293b;
+  --app-panel-2: #334155;
+  --app-panel-3: #1f1f1f;
+  --app-input-bg: #334155;
+  --app-muted: #94a3b8;
+  --app-card-bg: #1e293b;
+  --app-info-bg: rgba(14, 165, 233, 0.15);
+  --app-success-bg: rgba(16, 185, 129, 0.15);
+  --app-warning-bg: rgba(245, 158, 11, 0.15);
+  
+  /* Dark Shadows */
+  --app-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --app-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --app-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --app-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45);
+  --app-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  --app-soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --app-soft-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--ion-background-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+ion-app, ion-page, ion-content {
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Modern Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+
+/* Modern Button Styles */
+ion-button {
+  --border-radius: var(--app-button-radius);
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --box-shadow: var(--app-shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+ion-button:not([disabled]):hover {
+  --box-shadow: var(--app-shadow-md);
+  transform: translateY(-2px);
+}
+
+ion-button[fill="solid"] {
+  --box-shadow: var(--app-shadow-md);
+}
+
+ion-button[fill="solid"]:not([disabled]):hover {
+  --box-shadow: var(--app-shadow-lg);
+}
+
+/* Modern Card Styles */
+ion-card {
+  --border-radius: var(--app-card-radius);
+  --box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--ion-border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 12px 0;
+}
+
+ion-card:hover {
+  --box-shadow: var(--app-shadow-lg);
+  transform: translateY(-4px);
+}
+
+/* Modern Input Styles */
+ion-input, ion-textarea, ion-select {
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --background: var(--app-input-bg);
+  --border-radius: var(--app-border-radius);
+  border: 1px solid var(--ion-border-color);
+  transition: all 0.2s ease;
+}
+
+ion-input:focus, ion-textarea:focus, ion-select:focus {
+  --border-color: var(--ion-color-primary);
+  --box-shadow: 0 0 0 3px var(--app-info-bg);
+}
+
+/* Modern Item Styles */
+ion-item {
+  --border-radius: var(--app-border-radius);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --inner-padding-top: 12px;
+  --inner-padding-bottom: 12px;
+}
+
+/* Modern Badge/Chip Styles */
+ion-badge {
+  --border-radius: 20px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Smooth Transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
