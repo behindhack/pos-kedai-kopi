@@ -89,35 +89,6 @@
           </ion-button>
         </div>
 
-        <div class="demo-credentials">
-          <div class="demo-header">
-            <p class="demo-title">📝 Demo Credentials:</p>
-            <button class="reset-btn" @click="resetDemoData" title="Klik untuk reset data demo">⟲ Reset</button>
-          </div>
-          <div class="credentials-list">
-            <div class="credential-item" @click="fillDemo('owner@kedaikopi.com', 'owner123')">
-              <span class="role-badge owner">OWNER</span>
-              <div class="credential-info">
-                <span class="email">owner@kedaikopi.com</span>
-                <span class="password-hint">owner123</span>
-              </div>
-            </div>
-            <div class="credential-item" @click="fillDemo('cashier@kedaikopi.com', 'cashier123')">
-              <span class="role-badge cashier">CASHIER</span>
-              <div class="credential-info">
-                <span class="email">cashier@kedaikopi.com</span>
-                <span class="password-hint">cashier123</span>
-              </div>
-            </div>
-            <div class="credential-item" @click="fillDemo('barista@kedaikopi.com', 'barista123')">
-              <span class="role-badge barista">BARISTA</span>
-              <div class="credential-info">
-                <span class="email">barista@kedaikopi.com</span>
-                <span class="password-hint">barista123</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </ion-content>
   </ion-page>
@@ -216,21 +187,6 @@ const goRegister = () => {
   router.push('/auth/register');
 };
 
-const fillDemo = (demoEmail: string, demoPassword: string) => {
-  email.value = demoEmail;
-  password.value = demoPassword;
-  errors.value = {};
-};
-
-const resetDemoData = () => {
-  // Force re-initialize demo data in localStorage
-  localStorage.removeItem('users');
-  localStorage.removeItem('products');
-  localStorage.removeItem('sales');
-  
-  // Reload the api client to re-initialize
-  window.location.reload();
-};
 </script>
 
 <style scoped>
@@ -420,119 +376,6 @@ const resetDemoData = () => {
   --color: var(--ion-color-primary);
 }
 
-.demo-credentials {
-  background-color: var(--ion-color-step-100);
-  border-radius: 8px;
-  padding: 16px;
-  border-left: 4px solid var(--ion-color-primary);
-}
-
-.demo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.demo-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ion-color-medium);
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.reset-btn {
-  background: none;
-  border: 1px solid var(--ion-color-medium);
-  color: var(--ion-color-medium);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.reset-btn:hover {
-  background-color: var(--ion-color-step-200);
-  border-color: var(--ion-color-primary);
-  color: var(--ion-color-primary);
-}
-
-.credentials-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.credential-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-  font-size: 12px;
-}
-
-.credential-item:hover {
-  background-color: var(--ion-color-step-50);
-  border-color: var(--ion-color-primary);
-  transform: translateX(2px);
-}
-
-.credential-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-}
-
-.credential-info .email {
-  font-size: 11px;
-  color: var(--ion-color-dark);
-  font-weight: 500;
-  word-break: break-all;
-}
-
-.credential-info .password-hint {
-  font-size: 10px;
-  color: var(--ion-color-medium);
-  font-family: monospace;
-  background-color: var(--ion-color-step-100);
-  padding: 2px 4px;
-  border-radius: 2px;
-  display: inline-block;
-  width: fit-content;
-}
-
-.role-badge {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 3px;
-  color: white;
-  min-width: 50px;
-  text-align: center;
-}
-
-.role-badge.owner {
-  background-color: var(--ion-color-danger);
-}
-
-.role-badge.cashier {
-  background-color: var(--ion-color-success);
-}
-
-.role-badge.barista {
-  background-color: var(--ion-color-warning);
-}
 
 /* Responsive Design */
 @media (max-width: 480px) {
