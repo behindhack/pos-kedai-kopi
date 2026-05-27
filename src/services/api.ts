@@ -23,6 +23,21 @@ axiosInstance.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+// Axios Interceptor untuk handle error (khususnya 401 Unauthorized)
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Jika token invalid/expired, paksa logout
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('current_user');
+      localStorage.removeItem('login_timestamp');
+      window.location.href = '/auth/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Helper for error handling
 const handleApiError = (error: any) => {
   console.error('API Error:', error);
