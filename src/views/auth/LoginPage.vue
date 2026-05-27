@@ -44,7 +44,6 @@
                 v-model="email"
                 type="email"
                 placeholder="Masukkan email Anda"
-                autocomplete="email"
                 @ionBlur="validateEmail"
               />
             </ion-item>
@@ -61,7 +60,6 @@
                 v-model="password"
                 type="password"
                 placeholder="Masukkan password Anda"
-                autocomplete="current-password"
                 @ionBlur="validatePassword"
               />
             </ion-item>

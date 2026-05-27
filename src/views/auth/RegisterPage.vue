@@ -207,8 +207,13 @@ const handleRegister = async () => {
     const result = await auth.register(email.value, password.value, name.value);
 
     if (result.success) {
-      await showSuccess('Registrasi berhasil! Silakan login.');
-      router.replace('/auth/login');
+      await showSuccess('Registrasi berhasil!');
+      const userRole = auth.currentUser?.role;
+      if (userRole === 'BARISTA') {
+        router.replace('/tabs/pesanan');
+      } else {
+        router.replace('/tabs/kasir');
+      }
     } else {
       generalError.value = result.error || 'Registrasi gagal';
       await showError(generalError.value);
