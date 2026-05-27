@@ -22,6 +22,25 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pos_ko
 app.use(cors());
 app.use(express.json());
 
+// MongoDB Connection for Serverless Environment
+let isConnected = false;
+const connectDB = async () => {
+  if (isConnected) return;
+  try {
+    await mongoose.connect(MONGODB_URI);
+    isConnected = true;
+    console.log('✅ Connected to MongoDB');
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error);
+  }
+};
+
+// Add DB Connection as middleware (required for Vercel serverless)
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -32,20 +51,17 @@ app.use('/api/users', userRoutes);
 app.use('/api/financial-reports', financialRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Backend is running successfully' });
+  res.json({ status: 'OK', message: 'Backend is running successfully on Vercel' });
 });
 
-// Connect to MongoDB
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-    // Start server
+// Local Development Server
+if (process.env.NODE_ENV !== 'production') {
+  connectDB().then(() => {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
   });
+}
+
+// Export the Express API for Vercel
+export default app;
