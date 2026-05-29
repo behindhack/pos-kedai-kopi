@@ -188,8 +188,15 @@
               <h3 class="section-header">III. PERHITUNGAN LABA RUGI</h3>
               <div class="profitloss-form">
                 <div class="form-section">
-                  <h4>A. Biaya Pokok Penjualan (COGS)</h4>
-                  <div class="form-row">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h4>A. Biaya Pokok Penjualan (COGS)</h4>
+                    <ion-item lines="none" style="--background: transparent;">
+                      <ion-label style="font-size: 0.85rem;">Hitung Otomatis</ion-label>
+                      <ion-toggle v-model="useAutoCOGS"></ion-toggle>
+                    </ion-item>
+                  </div>
+
+                  <div v-if="!useAutoCOGS" class="form-row">
                     <div class="form-group">
                       <label>Stok Awal (Rp)</label>
                       <ion-input 
@@ -213,6 +220,15 @@
                         type="number"
                         placeholder="0"
                       ></ion-input>
+                    </div>
+                  </div>
+                  
+                  <div v-else class="auto-cogs-info">
+                    <p style="font-size: 0.9rem; color: var(--app-muted);">
+                      COGS dihitung secara otomatis berdasarkan resep dan harga bahan baku dari setiap produk yang terjual pada periode ini.
+                    </p>
+                    <div style="margin-top: 8px; font-weight: 600; font-size: 1.1rem; color: var(--ion-color-primary);">
+                      Nilai COGS: {{ formatCurrency(calculatedCOGS) }}
                     </div>
                   </div>
                 </div>
@@ -437,17 +453,22 @@ import {
   IonButton,
   IonIcon,
   IonInput,
+  IonToggle,
   toastController,
 } from '@ionic/vue';
 import { sunnyOutline, moonOutline, documentOutline, refreshOutline } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
 import * as XLSX from 'xlsx';
 import { useSalesStore } from '../stores/sales';
+import { useProductStore } from '../stores/products';
+import { useRawMaterialsStore } from '../stores/rawMaterials';
 import { useTheme } from '../composables/useTheme';
 import { formatCurrency } from '../utils/formatters';
 import type { Sale } from '../types';
 
 const salesStore = useSalesStore();
+const productStore = useProductStore();
+const rawMaterialsStore = useRawMaterialsStore();
 const { isDark, toggleTheme } = useTheme();
 
 const selectedDate = ref<string>(new Date().toISOString());
@@ -456,6 +477,7 @@ const dateRangeEnd = ref<string>(new Date().toISOString());
 const reportRef = ref<HTMLElement | null>(null);
 const reportType = ref<'daily' | 'weekly' | 'custom'>('daily');
 const reportNotes = ref<string>('');
+const useAutoCOGS = ref<boolean>(true);
 
 // Profit/Loss Data
 const cogsData = ref({
@@ -483,6 +505,8 @@ const reportTypes = [
 
 onMounted(() => {
   salesStore.loadFromStorage();
+  productStore.loadFromStorage();
+  rawMaterialsStore.loadRawMaterials('default');
 });
 
 const sameDay = (d1: string, d2: string) => {
@@ -599,7 +623,28 @@ const paymentMethodDetails = computed(() => {
 });
 
 // Profit/Loss Computed Properties
+const autoCOGS = computed(() => {
+  let totalCogs = 0;
+  daySales.value.forEach(sale => {
+    sale.items.forEach(item => {
+      const product = productStore.products.find(p => p.id === item.product.id || p.id === String(item.product.id));
+      if (product && product.recipe && product.recipe.length > 0) {
+        product.recipe.forEach(r => {
+          const material = rawMaterialsStore.activeMaterials.find(m => m.id === r.materialId || m.id === String(r.materialId));
+          if (material) {
+            totalCogs += Number(material.costPerUnit) * Number(r.quantity) * item.qty;
+          }
+        });
+      }
+    });
+  });
+  return totalCogs;
+});
+
 const calculatedCOGS = computed(() => {
+  if (useAutoCOGS.value) {
+    return autoCOGS.value;
+  }
   return cogsData.value.openingStock + cogsData.value.purchases - cogsData.value.closingStock;
 });
 
@@ -683,7 +728,7 @@ const exportExcel = async () => {
     XLSX.utils.book_append_sheet(workbook, paymentSheet, 'Metode Pembayaran');
 
     // ============= SHEET 3: LABA RUGI =============
-    const profitLossData = [
+    const profitLossData: any[][] = [
       ['LAPORAN LABA RUGI'],
       [],
       ['Periode:', reportPeriodText.value],
@@ -693,11 +738,25 @@ const exportExcel = async () => {
       ['Diskon & Retur', formatCurrencyRaw(totalDiscount.value)],
       ['Penjualan Bersih', formatCurrencyRaw(netRevenue.value)],
       [],
-      ['BIAYA POKOK PENJUALAN (COGS)', ''],
-      ['Stok Awal', formatCurrencyRaw(cogsData.value.openingStock)],
-      ['Pembelian', formatCurrencyRaw(cogsData.value.purchases)],
-      ['Stok Akhir', formatCurrencyRaw(cogsData.value.closingStock)],
-      ['Total COGS', formatCurrencyRaw(calculatedCOGS.value)],
+      ['BIAYA POKOK PENJUALAN (COGS)', '']
+    ];
+
+    if (useAutoCOGS.value) {
+      profitLossData.push(
+        ['Metode Perhitungan', 'Otomatis (Berdasarkan Resep Bahan Baku)'],
+        ['Total COGS', formatCurrencyRaw(calculatedCOGS.value)]
+      );
+    } else {
+      profitLossData.push(
+        ['Metode Perhitungan', 'Sistem Periodik (Manual)'],
+        ['Stok Awal', formatCurrencyRaw(cogsData.value.openingStock)],
+        ['Pembelian', formatCurrencyRaw(cogsData.value.purchases)],
+        ['Stok Akhir', formatCurrencyRaw(cogsData.value.closingStock)],
+        ['Total COGS', formatCurrencyRaw(calculatedCOGS.value)]
+      );
+    }
+
+    profitLossData.push(
       [],
       ['Laba Kotor', formatCurrencyRaw(grossProfit.value)],
       [],
@@ -714,8 +773,8 @@ const exportExcel = async () => {
       [],
       ['RINGKASAN KEUNTUNGAN', ''],
       ['Laba Bersih', formatCurrencyRaw(netProfit.value)],
-      ['Margin Laba', profitMargin.value.toFixed(2) + '%'],
-    ];
+      ['Margin Laba', profitMargin.value.toFixed(2) + '%']
+    );
 
     const profitLossSheet = XLSX.utils.aoa_to_sheet(profitLossData);
     profitLossSheet['!cols'] = [{ wch: 30 }, { wch: 20 }];
