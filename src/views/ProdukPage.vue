@@ -325,7 +325,7 @@ const form = ref<{
 // Profit Analysis Computeds
 const recipeTotalCost = computed(() => {
   return form.value.recipe.reduce((total, item) => {
-    const rawMaterial = rawMaterialsStore.activeMaterials.find(rm => rm.id === item.materialId || rm.id === Number(item.materialId));
+    const rawMaterial = rawMaterialsStore.activeMaterials.find(rm => String(rm.id) === String(item.materialId));
     if (rawMaterial && item.quantity) {
       return total + (Number(rawMaterial.costPerUnit) * Number(item.quantity));
     }
