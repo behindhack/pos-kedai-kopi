@@ -5,8 +5,8 @@ import {
   getFinancialReports,
   getLatestFinancialMetrics,
   deleteFinancialReport
-} from '../controllers/financial.controller';
-import { authenticate, requireRole } from '../middlewares/auth.middleware';
+} from '../controllers/financial.controller.js';
+import { authenticate, requireRole } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 

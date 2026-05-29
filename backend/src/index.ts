@@ -1,45 +1,30 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { prisma } from './lib/prisma.js';
 
-import authRoutes from './routes/auth.routes';
-import productRoutes from './routes/product.routes';
-import saleRoutes from './routes/sale.routes';
-import settingRoutes from './routes/setting.routes';
-import inventoryRoutes from './routes/inventory.routes';
-import userRoutes from './routes/user.routes';
-import financialRoutes from './routes/financial.routes';
+import authRoutes from './routes/auth.routes.js';
+import productRoutes from './routes/product.routes.js';
+import saleRoutes from './routes/sale.routes.js';
+import settingRoutes from './routes/setting.routes.js';
+import inventoryRoutes from './routes/inventory.routes.js';
+import userRoutes from './routes/user.routes.js';
+import financialRoutes from './routes/financial.routes.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://yogadwiatmaja_db_user:vS9018PJh8sp1Vh7@cluster0.emzbsi2.mongodb.net/pos_kopi?appName=Cluster0';
+const HOST = process.env.HOST || '0.0.0.0';
 
-// Middlewares
-app.use(cors());
-app.use(express.json());
-
-// MongoDB Connection for Serverless Environment
-let isConnected = false;
-const connectDB = async () => {
-  if (isConnected) return;
-  try {
-    await mongoose.connect(MONGODB_URI);
-    isConnected = true;
-    console.log('✅ Connected to MongoDB');
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
-  }
-};
-
-// Add DB Connection as middleware (required for Vercel serverless)
-app.use(async (req, res, next) => {
-  await connectDB();
-  next();
-});
+// Middlewares — izinkan akses dari semua origin (LAN & browser)
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json({ limit: '10mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -50,18 +35,38 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/financial-reports', financialRoutes);
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Backend is running successfully on Vercel' });
+app.get('/api/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'OK', message: 'Backend is running, MySQL connected ✅', db: 'MySQL' });
+  } catch {
+    res.status(500).json({ status: 'ERROR', message: 'MySQL connection failed ❌' });
+  }
 });
 
-// Local Development Server
-if (process.env.NODE_ENV !== 'production') {
-  connectDB().then(() => {
-    app.listen(PORT, () => {
+// Start Server
+const startServer = async () => {
+  try {
+    await prisma.$connect();
+    console.log('✅ Connected to MySQL');
+    app.listen(Number(PORT), HOST, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🌐 LAN access: http://192.168.100.116:${PORT}`);
     });
-  });
-}
+  } catch (error) {
+    console.error('❌ MySQL connection error:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  console.log('🔌 Disconnected from MySQL');
+  process.exit(0);
+});
 
 // Export the Express API for Vercel
 export default app;

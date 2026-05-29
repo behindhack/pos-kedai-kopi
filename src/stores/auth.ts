@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async register(email: string, password: string, name: string) {
+    async register(email: string, password: string, name: string, role?: string) {
       this.isLoading = true;
       this.error = null;
       
@@ -68,7 +68,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const result = await apiClient.register(email, password, name);
+        const result = await apiClient.register(email, password, name, role);
         if (result.error) {
           this.error = result.error;
           throw new Error(result.error);
@@ -129,6 +129,46 @@ export const useAuthStore = defineStore('auth', {
         return { success: true };
       } catch (error: any) {
         const errorMsg = error.message || 'Login gagal, silakan coba lagi';
+        this.error = errorMsg;
+        return { success: false, error: errorMsg };
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async forgotPassword(email: string) {
+      this.isLoading = true;
+      this.error = null;
+      
+      try {
+        const result = await apiClient.forgotPassword(email);
+        if (result.error) {
+          this.error = result.error;
+          return { success: false, error: result.error };
+        }
+        return { success: true, message: result.data?.message, devToken: result.data?.devToken };
+      } catch (error: any) {
+        const errorMsg = error.message || 'Gagal mengirim permintaan reset password';
+        this.error = errorMsg;
+        return { success: false, error: errorMsg };
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async resetPassword(token: string, newPassword: string) {
+      this.isLoading = true;
+      this.error = null;
+      
+      try {
+        const result = await apiClient.resetPassword(token, newPassword);
+        if (result.error) {
+          this.error = result.error;
+          return { success: false, error: result.error };
+        }
+        return { success: true, message: result.data?.message };
+      } catch (error: any) {
+        const errorMsg = error.message || 'Gagal mereset password';
         this.error = errorMsg;
         return { success: false, error: errorMsg };
       } finally {

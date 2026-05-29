@@ -62,6 +62,15 @@ class APIClient {
   getToken(): string | null {
     return localStorage.getItem('auth_token');
   }
+  
+  async checkSetupStatus() {
+    try {
+      const response = await axiosInstance.get('/auth/setup-status');
+      return { data: response.data, error: null };
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
 
   async login(email: string, password: string) {
     try {
@@ -76,6 +85,24 @@ class APIClient {
   async register(email: string, password: string, name: string, role?: string) {
     try {
       const response = await axiosInstance.post('/auth/register', { email, password, name, role });
+      return { data: response.data, error: null };
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  async forgotPassword(email: string) {
+    try {
+      const response = await axiosInstance.post('/auth/forgot-password', { email });
+      return { data: response.data, error: null };
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      const response = await axiosInstance.post('/auth/reset-password', { token, newPassword });
       return { data: response.data, error: null };
     } catch (error) {
       return handleApiError(error);
@@ -224,6 +251,53 @@ class APIClient {
     }
   }
 
+  async updateRawMaterialStock(id: string, quantity: number) {
+    try {
+      const response = await axiosInstance.put(`/inventory/${id}`, { quantity });
+      return { data: response.data, error: null };
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  async getLowStockMaterials(storeId?: string) {
+    try {
+      const response = await axiosInstance.get('/inventory');
+      const materials = response.data || [];
+      // Filter materials where quantity <= minQuantity
+      const lowStock = materials.filter((m: any) => m.quantity <= m.minQuantity);
+      return { data: lowStock, error: null };
+    } catch (error) {
+      return { data: [], error: null };
+    }
+  }
+
+  async getTotalRawMaterialCost(storeId?: string) {
+    try {
+      const response = await axiosInstance.get('/inventory');
+      const materials = response.data || [];
+      const totalCost = materials.reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
+      const materialCount = materials.length;
+      return { 
+        data: { 
+          totalCost, 
+          materialCount, 
+          materials 
+        }, 
+        error: null 
+      };
+    } catch (error) {
+      return { 
+        data: { 
+          totalCost: 0, 
+          materialCount: 0, 
+          materials: [] 
+        }, 
+        error: null 
+      };
+    }
+  }
+
   // ==========================================
   // SETTINGS
   // ==========================================
@@ -271,6 +345,15 @@ class APIClient {
 
   generateUserId() {
     return `user-${Date.now()}`;
+  }
+
+  async createUser(data: any) {
+    try {
+      const response = await axiosInstance.post('/users', data);
+      return { data: response.data, error: null };
+    } catch (error) {
+      return handleApiError(error);
+    }
   }
 
   async updateUser(userId: string, data: any) {
@@ -353,22 +436,6 @@ class APIClient {
     } catch (error) {
       return handleApiError(error);
     }
-  }
-
-  // ==========================================
-  // RAW MATERIAL EXTENDED (MOCK)
-  // ==========================================
-
-  async getLowStockMaterials(storeId?: string) {
-    return { data: [] as any[], error: null };
-  }
-
-  async getTotalRawMaterialCost(storeId?: string) {
-    return { data: { totalCost: 0, materialCount: 0, materials: [] } as any, error: null };
-  }
-
-  async updateRawMaterialStock(id: string, quantity: number) {
-    return { data: null as any, error: 'Not implemented' };
   }
 }
 

@@ -9,7 +9,7 @@
     <ion-content class="ion-padding ion-content-register">
       <div class="register-container">
         <div class="logo-box">
-          <h1 class="logo-title">☕ Buat Akun</h1>
+          <h1 class="logo-title" style="display: flex; align-items: center; justify-content: center; gap: 8px;"><ion-icon :icon="cafeOutline"></ion-icon> Buat Akun</h1>
           <p class="subtitle">Daftar akun POS Kedai Kopi</p>
         </div>
 
@@ -18,7 +18,18 @@
           <span>{{ generalError }}</span>
         </div>
 
-        <form @submit.prevent="handleRegister" class="register-form">
+        <div v-if="isCheckingSetup" class="loading-state">
+          <ion-spinner name="crescent" />
+          <p>Memeriksa status sistem...</p>
+        </div>
+
+        <div v-else-if="isRegistrationClosed" class="closed-state">
+          <ion-icon :icon="alertCircleOutline" class="closed-icon" />
+          <h3>Pendaftaran Ditutup</h3>
+          <p>Pendaftaran publik tidak diizinkan. Silakan minta Owner / Admin untuk membuatkan akun untuk Anda.</p>
+        </div>
+
+        <form v-else @submit.prevent="handleRegister" class="register-form">
           <div class="form-group">
             <label class="form-label">Nama Lengkap</label>
             <ion-item :color="errors.name ? 'danger' : ''" lines="none" class="custom-input-item">
@@ -83,6 +94,7 @@
             </div>
           </div>
 
+          <!-- Role dropdown removed, role is strictly OWNER during setup -->
           <ion-button
             type="submit"
             expand="block"
@@ -115,15 +127,18 @@ import {
   IonList,
   IonItem,
   IonInput,
+  IonSelect,
+  IonSelectOption,
   IonButton,
   IonSpinner,
   IonIcon,
 } from '@ionic/vue';
-import { alertCircleOutline } from 'ionicons/icons';
-import { ref, computed } from 'vue';
+import { alertCircleOutline, cafeOutline } from 'ionicons/icons';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useNotification } from '@/composables/useNotification';
+import { apiClient } from '@/services/api';
 import {
   validateEmail as validateEmailFormat,
   validatePassword as validatePasswordFormat,
@@ -137,7 +152,10 @@ const name = ref('');
 const email = ref('');
 const password = ref('');
 const confirmPassword = ref('');
+const role = ref('OWNER');
 const isLoading = ref(false);
+const isCheckingSetup = ref(true);
+const isRegistrationClosed = ref(false);
 const generalError = ref('');
 const errors = ref<Record<string, string>>({});
 
@@ -149,6 +167,24 @@ const isFormValid = computed(() => {
     confirmPassword.value.trim() &&
     !Object.keys(errors.value).length
   );
+});
+
+onMounted(async () => {
+  try {
+    const res = await apiClient.checkSetupStatus();
+    if (res.data && res.data.isSetup) {
+      isRegistrationClosed.value = true;
+    } else {
+      isRegistrationClosed.value = false;
+      role.value = 'OWNER'; // Only OWNER can be created here
+    }
+  } catch (err) {
+    console.error('Failed to check setup status', err);
+    // If it fails, assume it's closed just to be safe
+    isRegistrationClosed.value = true;
+  } finally {
+    isCheckingSetup.value = false;
+  }
 });
 
 const validateName = () => {
@@ -204,7 +240,7 @@ const handleRegister = async () => {
   generalError.value = '';
 
   try {
-    const result = await auth.register(email.value, password.value, name.value);
+    const result = await auth.register(email.value, password.value, name.value, role.value);
 
     if (result.success) {
       await showSuccess('Registrasi berhasil!');
@@ -312,17 +348,23 @@ const goLogin = () => {
 }
 
 .custom-input-item {
-  --padding-start: 12px;
-  --padding-end: 12px;
+  --padding-start: 14px;
+  --padding-end: 14px;
   --min-height: 48px;
-  border: 1px solid var(--ion-color-step-300);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  --background: var(--app-input-bg);
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-input-item:hover {
+  --box-shadow: var(--app-shadow-sm);
 }
 
 .custom-input-item:focus-within {
-  border-color: var(--ion-color-primary);
-  box-shadow: 0 0 0 2px rgba(194, 107, 45, 0.1);
+  --border-color: var(--ion-color-primary);
+  border: 1.5px solid var(--ion-color-primary);
+  box-shadow: 0 0 0 4px var(--app-info-bg);
 }
 
 .error-text {
@@ -361,6 +403,36 @@ const goLogin = () => {
 .login-button {
   font-weight: 500;
   --color: var(--ion-color-primary);
+}
+
+.loading-state,
+.closed-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--ion-background-color);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid var(--ion-color-step-150);
+}
+
+.closed-state .closed-icon {
+  font-size: 48px;
+  color: var(--ion-color-warning);
+  margin-bottom: 16px;
+}
+
+.closed-state h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.closed-state p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  line-height: 1.5;
 }
 
 /* Responsive Design */

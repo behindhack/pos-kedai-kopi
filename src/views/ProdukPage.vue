@@ -26,8 +26,8 @@
 
           <!-- Tombol Tambah Produk Prominent -->
           <ion-button expand="block" color="primary" fill="solid" class="add-product-btn" @click="openAddModal">
-            <ion-icon icon="addCircleOutline" slot="start"></ion-icon>
-            ➕ Tambah Produk Baru
+            <ion-icon :icon="addCircleOutline" slot="start"></ion-icon>
+            Tambah Produk Baru
           </ion-button>
 
           <ion-grid class="product-grid">
@@ -36,7 +36,9 @@
                 <ion-card class="product-card">
                   <div class="product-image-wrap">
                     <img v-if="p.image" :src="p.image" alt="Gambar produk" class="product-image" />
-                    <div v-else class="product-placeholder">☕</div>
+                    <div v-else class="product-placeholder">
+                      <ion-icon :icon="cafeOutline"></ion-icon>
+                    </div>
                   </div>
                   <ion-card-header>
                     <ion-card-title>{{ p.name }}</ion-card-title>
@@ -46,10 +48,12 @@
                     <p class="price">{{ formatCurrency(p.basePrice) }}</p>
                     <div class="action-buttons">
                       <ion-button size="small" fill="outline" @click="editProduct(p)">
-                        ✏️ Edit
+                        <ion-icon :icon="createOutline" slot="start"></ion-icon>
+                        Edit
                       </ion-button>
                       <ion-button size="small" fill="outline" color="danger" @click="confirmDelete(p)">
-                        🗑️ Hapus
+                        <ion-icon :icon="trashOutline" slot="start"></ion-icon>
+                        Hapus
                       </ion-button>
                     </div>
                   </ion-card-content>
@@ -62,9 +66,16 @@
         <ion-modal :is-open="showModal" @didDismiss="closeModal" class="product-modal">
           <ion-header>
             <ion-toolbar>
-              <ion-title>{{ editingProduct ? '✏️ Edit Produk' : '➕ Tambah Produk Baru' }}</ion-title>
+              <ion-title>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <ion-icon :icon="editingProduct ? createOutline : addCircleOutline"></ion-icon>
+                  <span>{{ editingProduct ? 'Edit Produk' : 'Tambah Produk Baru' }}</span>
+                </div>
+              </ion-title>
               <ion-buttons slot="end">
-                <ion-button @click="closeModal">Tutup</ion-button>
+                <ion-button @click="closeModal">
+                  <ion-icon :icon="closeOutline" slot="icon-only"></ion-icon>
+                </ion-button>
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
@@ -72,7 +83,12 @@
           <ion-content class="ion-padding">
             <!-- Nama Produk -->
             <ion-item class="form-item">
-              <ion-label position="stacked">📝 Nama Produk</ion-label>
+              <ion-label position="stacked">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <ion-icon :icon="pricetagOutline"></ion-icon>
+                  Nama Produk
+                </div>
+              </ion-label>
               <ion-input 
                 v-model="form.name" 
                 placeholder="Masukkan nama produk"
@@ -82,18 +98,28 @@
 
             <!-- Kategori -->
             <ion-item class="form-item">
-              <ion-label position="stacked">🏷️ Kategori</ion-label>
+              <ion-label position="stacked">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <ion-icon :icon="cafeOutline"></ion-icon>
+                  Kategori
+                </div>
+              </ion-label>
               <ion-select v-model="form.category" placeholder="Pilih kategori">
-                <ion-select-option value="ESPRESSO">☕ Espresso Based</ion-select-option>
-                <ion-select-option value="MANUAL_BREW">🫖 Manual Brew</ion-select-option>
-                <ion-select-option value="NON_COFFEE">🥤 Non Coffee</ion-select-option>
-                <ion-select-option value="FOOD">🥐 Food / Pastry</ion-select-option>
+                <ion-select-option value="ESPRESSO">Espresso Based</ion-select-option>
+                <ion-select-option value="MANUAL_BREW">Manual Brew</ion-select-option>
+                <ion-select-option value="NON_COFFEE">Non Coffee</ion-select-option>
+                <ion-select-option value="FOOD">Food / Pastry</ion-select-option>
               </ion-select>
             </ion-item>
 
             <!-- Harga Dasar -->
             <ion-item class="form-item">
-              <ion-label position="stacked">💰 Harga Dasar (Rp)</ion-label>
+              <ion-label position="stacked">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <ion-icon :icon="cashOutline"></ion-icon>
+                  Harga Dasar (Rp)
+                </div>
+              </ion-label>
               <ion-input 
                 v-model.number="form.basePrice" 
                 type="number" 
@@ -104,7 +130,10 @@
 
             <!-- Upload Gambar -->
             <div class="upload-section">
-              <label class="upload-label">🖼️ Upload Gambar Produk</label>
+              <label class="upload-label">
+                <ion-icon :icon="imageOutline" style="vertical-align: middle; margin-right: 6px;"></ion-icon>
+                Upload Gambar Produk
+              </label>
               <div class="file-input-wrapper">
                 <input 
                   type="file" 
@@ -114,7 +143,8 @@
                   class="file-input"
                 />
                 <label for="product-image-input" class="file-label">
-                  📁 Pilih Gambar (JPG, PNG, GIF)
+                  <ion-icon :icon="imageOutline" style="font-size: 1.2rem;"></ion-icon>
+                  Pilih Gambar (JPG, PNG, GIF)
                 </label>
               </div>
             </div>
@@ -124,13 +154,56 @@
               <p class="preview-title">Preview Gambar:</p>
               <img :src="form.image" alt="Preview produk" class="preview-image" />
               <ion-button size="small" fill="clear" color="danger" @click="form.image = ''">
-                ❌ Hapus Gambar
+                <ion-icon :icon="trashOutline" slot="start"></ion-icon>
+                Hapus Gambar
               </ion-button>
+            </div>
+
+            <!-- Resep / Bahan Baku -->
+            <div class="recipe-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <label class="upload-label" style="margin-bottom: 0;">
+                  <ion-icon :icon="cubeOutline" style="vertical-align: middle; margin-right: 6px;"></ion-icon>
+                  Resep Bahan Baku (Opsional)
+                </label>
+                <ion-button size="small" fill="outline" @click="addRecipeItem">
+                  <ion-icon :icon="addOutline" slot="start"></ion-icon>
+                  Tambah Bahan
+                </ion-button>
+              </div>
+
+              <div v-for="(item, index) in form.recipe" :key="index" class="recipe-item-row">
+                <ion-item class="form-item recipe-select-item" lines="none">
+                  <ion-select v-model="item.materialId" placeholder="Pilih Bahan" interface="popover">
+                    <ion-select-option v-for="rm in rawMaterialsStore.activeMaterials" :key="rm.id" :value="rm.id">
+                      {{ rm.name }} ({{ rm.unit }})
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+                
+                <ion-item class="form-item recipe-qty-item" lines="none">
+                  <ion-input
+                    v-model.number="item.quantity"
+                    type="number"
+                    placeholder="Jumlah"
+                  />
+                </ion-item>
+                
+                <ion-button fill="clear" color="danger" class="recipe-remove-btn" @click="removeRecipeItem(index)">
+                  <ion-icon :icon="trashOutline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
+              <p v-if="form.recipe.length === 0" class="empty-recipe">
+                Tidak ada bahan baku. (Stok produk akan dipotong langsung saat terjual)
+              </p>
             </div>
 
             <!-- Info -->
             <div class="info-box">
-              <p><strong>Info:</strong></p>
+              <p style="display: flex; align-items: center; gap: 6px;">
+                <ion-icon :icon="informationCircleOutline" style="font-size: 1.2rem;"></ion-icon>
+                <strong>Info:</strong>
+              </p>
               <ul>
                 <li>Nama dan kategori harus diisi</li>
                 <li>Gambar akan di-resize otomatis ke 250x250px</li>
@@ -140,11 +213,13 @@
 
             <!-- Action Buttons -->
             <ion-button expand="block" fill="solid" color="primary" class="save-btn" @click="saveProduct">
-              💾 Simpan Produk
+              <ion-icon :icon="saveOutline" slot="start"></ion-icon>
+              Simpan Produk
             </ion-button>
 
-            <ion-button expand="block" fill="outline" @click="closeModal">
-              ❌ Batal
+            <ion-button expand="block" fill="outline" @click="closeModal" class="cancel-btn">
+              <ion-icon :icon="closeOutline" slot="start"></ion-icon>
+              Batal
             </ion-button>
           </ion-content>
         </ion-modal>
@@ -159,16 +234,20 @@
           <ion-content class="ion-padding">
             <ion-item>
               <img v-if="productToDelete?.image" :src="productToDelete.image" alt="Produk" class="confirm-image" />
-              <div v-else class="confirm-placeholder">☕</div>
+              <div v-else class="confirm-placeholder">
+                <ion-icon :icon="cafeOutline"></ion-icon>
+              </div>
             </ion-item>
             <p class="confirm-text">
               Apakah Anda yakin ingin menghapus produk <strong>{{ productToDelete?.name }}</strong>?
             </p>
             <ion-button expand="block" fill="solid" color="danger" @click="confirmDeleteAction">
-              🗑️ Hapus Produk
+              <ion-icon :icon="trashOutline" slot="start"></ion-icon>
+              Hapus Produk
             </ion-button>
             <ion-button expand="block" fill="outline" @click="closeDeleteConfirm">
-              ❌ Batal
+              <ion-icon :icon="closeOutline" slot="start"></ion-icon>
+              Batal
             </ion-button>
           </ion-content>
         </ion-modal>
@@ -189,10 +268,12 @@ import { useProductStore } from '../stores/products';
 import { useTheme } from '../composables/useTheme';
 import { formatCurrency, formatCategory } from '../utils/formatters';
 import { validateProductForm } from '../utils/validators';
-import type { Product } from '../types';
-import { sunnyOutline, moonOutline, addCircleOutline } from 'ionicons/icons';
+import type { Product, RecipeItem } from '../types';
+import { useRawMaterialsStore } from '../stores/rawMaterials';
+import { sunnyOutline, moonOutline, addCircleOutline, pricetagOutline, cafeOutline, cashOutline, imageOutline, closeOutline, saveOutline, createOutline, informationCircleOutline, trashOutline, cubeOutline, addOutline } from 'ionicons/icons';
 
 const productStore = useProductStore();
+const rawMaterialsStore = useRawMaterialsStore();
 const { isDark, toggleTheme } = useTheme();
 const selectedCategory = ref<'ALL' | Product['category']>('ALL');
 const showModal = ref(false);
@@ -206,10 +287,13 @@ const form = ref<{
   category: Product['category'] | '';
   basePrice: number;
   image?: string;
-}>({ name: '', category: '' as any, basePrice: 0, image: '' });
+  recipe: RecipeItem[];
+}>({ name: '', category: '' as any, basePrice: 0, image: '', recipe: [] });
 
 onMounted(() => {
   productStore.loadFromStorage();
+  // We use dummy 'default' since multi-tenant is not fully setup
+  rawMaterialsStore.loadRawMaterials('default');
 });
 
 const filteredProducts = computed(() => {
@@ -219,7 +303,7 @@ const filteredProducts = computed(() => {
 
 const openAddModal = () => {
   editingProduct.value = null;
-  form.value = { name: '', category: '' as any, basePrice: 0, image: '' };
+  form.value = { name: '', category: '' as any, basePrice: 0, image: '', recipe: [] };
   showModal.value = true;
 };
 
@@ -231,6 +315,7 @@ const editProduct = (p: Product) => {
     category: p.category,
     basePrice: p.basePrice,
     image: p.image || '',
+    recipe: p.recipe ? JSON.parse(JSON.stringify(p.recipe)) : [],
   };
   showModal.value = true;
 };
@@ -238,7 +323,15 @@ const editProduct = (p: Product) => {
 const closeModal = () => {
   showModal.value = false;
   editingProduct.value = null;
-  form.value = { name: '', category: '' as any, basePrice: 0, image: '' };
+  form.value = { name: '', category: '' as any, basePrice: 0, image: '', recipe: [] };
+};
+
+const addRecipeItem = () => {
+  form.value.recipe.push({ materialId: '', quantity: 1 });
+};
+
+const removeRecipeItem = (index: number) => {
+  form.value.recipe.splice(index, 1);
 };
 
 const confirmDelete = (p: Product) => {
@@ -331,11 +424,31 @@ const saveProduct = async () => {
   }
   
   const toast = await toastController.create({ duration: 1500, position: 'top' });
+  
+  // Filter empty materialIds just in case
+  const validRecipe = form.value.recipe.filter(r => r.materialId && r.quantity > 0);
+
   if (editingProduct.value) {
-    productStore.updateProduct(form.value.id!, { id: form.value.id!, name: form.value.name, category: form.value.category as Product['category'], basePrice: form.value.basePrice, image: form.value.image, isActive: true });
+    productStore.updateProduct(form.value.id!, { 
+      id: form.value.id!, 
+      name: form.value.name, 
+      category: form.value.category as Product['category'], 
+      basePrice: form.value.basePrice, 
+      image: form.value.image, 
+      recipe: validRecipe,
+      isActive: true 
+    });
     toast.message = 'Produk diperbarui';
   } else {
-    productStore.addProduct({ id: Date.now().toString(), name: form.value.name, category: form.value.category as Product['category'], basePrice: form.value.basePrice, image: form.value.image, isActive: true });
+    productStore.addProduct({ 
+      id: Date.now().toString(), 
+      name: form.value.name, 
+      category: form.value.category as Product['category'], 
+      basePrice: form.value.basePrice, 
+      image: form.value.image, 
+      recipe: validRecipe,
+      isActive: true 
+    });
     toast.message = 'Produk ditambahkan';
   }
   await toast.present();
@@ -418,36 +531,106 @@ const saveProduct = async () => {
   font-size: 12px;
 }
 
-/* Modal Styles */
-.product-modal::part(content) {
-  --background: var(--ion-background-color, #f5f7fb);
+/* Modal Styles - Modern Design */
+.product-modal {
+  --background: var(--ion-background-color, #f8f9fa);
 }
 
+.product-modal::part(content) {
+  --background: var(--ion-background-color, #f8f9fa);
+  border-radius: 24px 24px 0 0;
+}
+
+.product-modal ion-header {
+  --background: transparent;
+  --border-bottom: none;
+  padding: 16px 0;
+}
+
+.product-modal ion-toolbar {
+  --background: transparent;
+  --border-bottom: 1px solid var(--ion-border-color);
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+.product-modal ion-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+  letter-spacing: -0.5px;
+}
+
+.product-modal ion-content {
+  --padding-top: 24px;
+  --padding-bottom: 24px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --background: var(--ion-background-color);
+}
+
+/* Form Item - Modern */
 .form-item {
   --padding-start: 0;
   --padding-end: 0;
-  --inner-padding-end: 0;
-  margin-bottom: 20px;
-  border: 1px solid var(--ion-border-color, #edf0f5);
+  --inner-padding-start: 14px;
+  --inner-padding-end: 14px;
+  --inner-padding-top: 14px;
+  --inner-padding-bottom: 14px;
+  margin-bottom: 18px;
+  border: 1.5px solid var(--ion-border-color);
   border-radius: 12px;
   --border-radius: 12px;
-  background: var(--app-panel);
+  background: var(--app-input-bg);
+  --background: var(--app-input-bg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.form-item:hover {
+  border-color: var(--ion-border-color);
+  box-shadow: var(--app-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.form-item:focus-within {
+  border-color: var(--ion-color-primary);
+  border: 1.5px solid var(--ion-color-primary);
+  box-shadow: 0 0 0 4px var(--app-info-bg), var(--app-shadow-sm);
+}
+
+.form-item ion-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ion-text-color);
+  margin-bottom: 4px;
+}
+
+/* Upload Section - Modern */
 .upload-section {
-  margin: 24px 0;
-  padding: 16px;
-  background: var(--app-panel-2);
-  border-radius: 12px;
-  border-left: 4px solid var(--ion-color-primary, #c26b2d);
+  margin: 28px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--app-panel-2) 0%, var(--app-input-bg) 100%);
+  border-radius: 14px;
+  border: 1.5px solid var(--ion-border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upload-section:hover {
+  border-color: var(--ion-color-primary);
+  box-shadow: var(--app-shadow-sm);
+  background: linear-gradient(135deg, var(--app-input-bg) 0%, var(--app-panel-2) 100%);
 }
 
 .upload-label { 
   display: block; 
-  margin-bottom: 12px; 
-  font-size: 14px; 
+  margin-bottom: 14px; 
+  font-size: 0.95rem; 
   font-weight: 600;
-  color: var(--app-text-color, #1f2937);
+  color: var(--ion-text-color);
+  letter-spacing: -0.3px;
 }
 
 .file-input-wrapper {
@@ -464,114 +647,247 @@ const saveProduct = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--ion-color-primary, #c26b2d);
+  gap: 10px;
+  padding: 16px 14px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, rgba(217, 119, 6, 0.85) 100%);
   color: white;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
+  border: 1.5px solid var(--ion-color-primary);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
 }
 
 .file-label:hover {
-  opacity: 0.9;
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.3);
+  border-color: rgba(217, 119, 6, 0.6);
 }
 
+.file-label:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2);
+}
+
+/* Preview Box - Modern */
 .preview-box { 
-  margin-top: 20px; 
-  padding: 16px;
-  background: var(--app-panel-2);
-  border-radius: 12px;
+  margin: 24px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--app-panel) 0%, var(--app-input-bg) 100%);
+  border-radius: 14px;
+  border: 1.5px solid var(--ion-border-color);
   text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .preview-title {
-  font-size: 12px;
-  color: var(--app-muted, #6b7280);
-  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: var(--app-muted);
+  margin-bottom: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .preview-image {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   object-fit: cover;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin: 0 auto 16px;
+  border: 2px solid var(--ion-border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.preview-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+}
+
+.preview-box ion-button {
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 36px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Info Box - Modern */
 .info-box {
-  margin: 20px 0;
-  padding: 12px 16px;
-  background: var(--app-info-bg, rgba(59, 130, 246, 0.1));
-  border-left: 4px solid var(--ion-color-primary, #c26b2d);
-  border-radius: 8px;
-  font-size: 13px;
+  margin: 24px 0;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, var(--app-info-bg) 0%, rgba(14, 165, 233, 0.05) 100%);
+  border-left: 3px solid var(--ion-color-primary);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  border: 1px solid rgba(14, 165, 233, 0.2);
 }
 
 .info-box p {
-  margin: 0 0 8px 0;
-  color: var(--app-text-color, #1f2937);
+  margin: 0 0 10px 0;
+  color: var(--ion-text-color);
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .info-box ul {
   margin: 0;
-  padding-left: 20px;
-  color: var(--app-muted, #6b7280);
+  padding-left: 22px;
+  color: var(--app-muted);
 }
 
 .info-box li {
-  margin: 4px 0;
-  font-size: 12px;
+  margin: 6px 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
+/* Recipe Section */
+.recipe-section {
+  margin: 24px 0;
+  padding: 16px;
+  background: var(--app-panel-2);
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 14px;
+}
+
+.recipe-item-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.recipe-select-item {
+  flex: 2;
+  margin-bottom: 0;
+}
+
+.recipe-qty-item {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.recipe-remove-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin: 0;
+}
+
+.empty-recipe {
+  font-size: 0.85rem;
+  color: var(--app-muted);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* Action Buttons - Modern */
 .save-btn {
   --border-radius: 12px;
-  margin-top: 12px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  height: 52px;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  --background: linear-gradient(135deg, var(--ion-color-primary) 0%, rgba(217, 119, 6, 0.85) 100%);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.save-btn:hover {
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.35);
+  transform: translateY(-2px);
+}
+
+.product-modal ion-button[fill="outline"] {
+  --border-radius: 10px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --border-width: 1.5px;
+  border-color: var(--ion-border-color);
+  height: 44px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-modal ion-button[fill="outline"]:hover {
+  border-color: var(--ion-color-primary);
+  color: var(--ion-color-primary);
+  background: rgba(217, 119, 6, 0.05);
 }
 
 .confirm-image {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
   border-radius: 12px;
-  margin-bottom: 16px;
+  margin: 16px auto;
+  display: block;
+  border: 2px solid var(--ion-border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .confirm-placeholder {
-  width: 100px;
-  height: 100px;
-  font-size: 48px;
+  width: 120px;
+  height: 120px;
+  font-size: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin: 16px auto;
+  background: var(--app-input-bg);
+  border-radius: 12px;
+  border: 2px dashed var(--ion-border-color);
 }
 
 .confirm-text {
   text-align: center;
-  margin: 16px 0;
-  font-size: 14px;
+  margin: 20px 0 24px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ion-text-color);
+}
+
+.confirm-text strong {
+  color: var(--ion-color-primary);
+  font-weight: 700;
 }
 
 .add-product-btn {
-  --border-radius: 14px;
-  margin: 16px 0;
-  font-weight: 600;
-  font-size: 16px;
-  --padding-start: 20px;
-  --padding-end: 20px;
-  height: 48px;
-  box-shadow: 0 4px 12px rgba(194, 107, 45, 0.2);
-  transition: all 0.3s ease;
+  --border-radius: 12px;
+  margin: 20px 0;
+  font-weight: 700;
+  font-size: 1rem;
+  --padding-start: 24px;
+  --padding-end: 24px;
+  height: 52px;
+  --background: linear-gradient(135deg, var(--ion-color-primary) 0%, rgba(217, 119, 6, 0.85) 100%);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.3px;
 }
 
 .add-product-btn:hover {
-  box-shadow: 0 6px 16px rgba(194, 107, 45, 0.3);
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.35);
   transform: translateY(-2px);
+}
+
+.add-product-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
 }
 
 /* Responsive Design */

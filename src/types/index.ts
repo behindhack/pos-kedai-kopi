@@ -8,6 +8,11 @@ export interface ProductVariant {
   extraPrice: number;
 }
 
+export interface RecipeItem {
+  materialId: string;
+  quantity: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -15,6 +20,8 @@ export interface Product {
   basePrice: number;
   image?: string;
   variants?: ProductVariant[];
+  recipe?: RecipeItem[];
+  stock?: number;
   isActive: boolean;
 }
 
@@ -55,6 +62,7 @@ export interface ShopSettings {
   shopLogo: string; // base64 or image url
   address?: string;
   phone?: string;
+  taxPercent?: number;
   printSettings: {
     showLogo: boolean;
     showAddress: boolean;

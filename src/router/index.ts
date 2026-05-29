@@ -21,13 +21,28 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: false },
   },
   {
+    path: '/auth/forgot-password',
+    component: () => import('@/views/auth/ForgotPasswordPage.vue'),
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/auth/reset-password/:token',
+    component: () => import('@/views/auth/ResetPasswordPage.vue'),
+    meta: { requiresAuth: false },
+  },
+  {
     path: '/tabs/',
     component: TabsPage,
     meta: { requiresAuth: true },
     children: [
       {
         path: '',
-        redirect: '/tabs/kasir',
+        redirect: '/tabs/dashboard',
+      },
+      {
+        path: 'dashboard',
+        component: () => import('@/views/DashboardPage.vue'),
+        meta: { requiresAuth: true, requiresRoles: ['OWNER'] },
       },
       {
         path: 'kasir',
@@ -86,7 +101,7 @@ router.beforeEach((to, from, next) => {
   }
 
   // If trying to access auth pages while authenticated, redirect to tabs
-  if (!requiresAuth && auth.isAuthenticated && (to.path === '/auth/login' || to.path === '/auth/register')) {
+  if (!requiresAuth && auth.isAuthenticated && to.path.startsWith('/auth/')) {
     next('/tabs');
     return;
   }

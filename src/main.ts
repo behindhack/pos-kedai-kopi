@@ -5,6 +5,10 @@ import { IonicVue } from '@ionic/vue';
 import App from './App.vue';
 import router from './router';
 
+// Membersihkan cache transaksi dari localStorage (sementara)
+localStorage.removeItem('sales');
+localStorage.removeItem('pending_orders');
+
 import '@ionic/vue/css/core.css';
 import './theme/variables.css';
 

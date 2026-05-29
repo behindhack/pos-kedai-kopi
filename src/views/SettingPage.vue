@@ -463,12 +463,16 @@ const saveStaff = async () => {
       await showSuccess('Staff berhasil diupdate');
     } else {
       // Create new staff
-      // Note: we use apiClient.register directly and NOT authStore!
-      // because authStore.register would log the OWNER out and set the new token.
-      const registerRes = await apiClient.register(staffForm.email, staffForm.password, staffForm.name, staffForm.role);
+      // Note: we use apiClient.createUser so it uses the protected /users endpoint
+      const createRes = await apiClient.createUser({
+        email: staffForm.email,
+        password: staffForm.password,
+        name: staffForm.name,
+        role: staffForm.role
+      });
       
-      if (registerRes.error) {
-         formError.value = registerRes.error;
+      if (createRes.error) {
+         formError.value = createRes.error;
          return;
       }
       
@@ -703,7 +707,7 @@ const applyLogoUrl = async () => {
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #5c3b2e, #8b5e3c);
+  background: linear-gradient(135deg, #c26b2d, #e58b43);
   color: #fff;
   display: flex;
   align-items: center;
@@ -898,7 +902,7 @@ const applyLogoUrl = async () => {
 }
 
 .apply-url-btn {
-  --background: linear-gradient(135deg, #5c3b2e, #8b5e3c);
+  --background: linear-gradient(135deg, #c26b2d, #e58b43);
   --border-radius: 16px;
   height: 45px;
   font-weight: 700;

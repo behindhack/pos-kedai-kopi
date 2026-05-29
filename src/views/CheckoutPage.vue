@@ -56,17 +56,30 @@
                   <span class="price">{{ formatCurrency(sales.subtotal) }}</span>
                 </div>
 
-                <!-- Discount -->
+                <!-- Discount Type Segment -->
                 <div class="payment-row">
-                  <span>Diskon</span>
+                  <span>Tipe Diskon</span>
+                  <ion-segment v-model="discountType" mode="ios" style="width: 150px; min-height: 32px;">
+                    <ion-segment-button value="nominal" style="min-height: 32px; font-size: 12px;">
+                      <ion-label>Rp</ion-label>
+                    </ion-segment-button>
+                    <ion-segment-button value="percent" style="min-height: 32px; font-size: 12px;">
+                      <ion-label>%</ion-label>
+                    </ion-segment-button>
+                  </ion-segment>
+                </div>
+
+                <!-- Discount Value -->
+                <div class="payment-row">
+                  <span>Nilai Diskon</span>
                   <div class="discount-input">
                     <ion-input
-                      v-model.number="discountAmount"
+                      v-model.number="discountValue"
                       type="number"
                       min="0"
-                      :max="sales.subtotal"
-                      @blur="updateDiscount"
-                      placeholder="0"
+                      :max="discountType === 'percent' ? 100 : sales.subtotal"
+                      @ionInput="updateDiscount"
+                      :placeholder="discountType === 'percent' ? '0%' : '0'"
                     />
                   </div>
                 </div>
@@ -180,7 +193,7 @@
         </ion-header>
 
         <ion-content class="ion-padding ion-text-center" v-if="lastSale">
-          <div class="success-icon">✅</div>
+          <div class="success-icon"><ion-icon :icon="checkmarkCircleOutline" color="success"></ion-icon></div>
           <h2>Pembayaran Diterima</h2>
 
           <div class="receipt-summary">
@@ -247,7 +260,7 @@ import {
   IonNote,
   toastController,
 } from '@ionic/vue';
-import { printOutline } from 'ionicons/icons';
+import { printOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSalesStore } from '../stores/sales';
@@ -263,8 +276,16 @@ const shopStore = useShopStore();
 
 const selectedPaymentMethod = ref<PaymentMethod>('CASH');
 const amountPaid = ref(0);
-const discountAmount = ref(0);
-const taxPercent = ref(0);
+const taxPercent = ref(shopStore.settings?.taxPercent || 0);
+
+const discountType = ref<'nominal' | 'percent'>('nominal');
+const discountValue = ref(0);
+const discountAmount = computed(() => {
+  if (discountType.value === 'percent') {
+    return (sales.subtotal * (discountValue.value || 0)) / 100;
+  }
+  return discountValue.value || 0;
+});
 const isProcessing = ref(false);
 const showSuccessModal = ref(false);
 const lastSale = ref<Sale | null>(null);
@@ -322,6 +343,11 @@ const canProcessPayment = computed(() => {
 });
 
 const updateDiscount = () => {
+  if (discountType.value === 'percent' && discountValue.value > 100) {
+    discountValue.value = 100;
+  } else if (discountType.value === 'nominal' && discountValue.value > sales.subtotal) {
+    discountValue.value = sales.subtotal;
+  }
   sales.setDiscount(discountAmount.value || 0);
 };
 
@@ -474,6 +500,30 @@ const handlePrintReceipt = () => {
 .discount-input,
 .tax-input {
   width: 100px;
+  display: flex;
+  align-items: center;
+}
+
+.discount-input ion-input,
+.tax-input ion-input {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --background: var(--app-input-bg);
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.discount-input ion-input:hover,
+.tax-input ion-input:hover {
+  box-shadow: var(--app-shadow-sm);
+}
+
+.discount-input ion-input:focus,
+.tax-input ion-input:focus {
+  --border-color: var(--ion-color-primary);
+  border: 1.5px solid var(--ion-color-primary);
+  box-shadow: 0 0 0 3px var(--app-info-bg);
 }
 
 .payment-row.total-row {

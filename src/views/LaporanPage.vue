@@ -845,7 +845,7 @@ const formatPaymentMethod = (method: string) => {
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #5c3b2e, #8b5e3c);
+  background: linear-gradient(135deg, #c26b2d, #e58b43);
   color: #fff;
   display: flex;
   align-items: center;

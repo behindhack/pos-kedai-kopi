@@ -4,7 +4,7 @@
       <ion-toolbar>
         <div class="toolbar-inner">
           <div class="header-title">
-            <h1>☕ Pesanan Pelanggan</h1>
+            <h1 style="display: flex; align-items: center; gap: 8px;"><ion-icon :icon="cafeOutline"></ion-icon> Pesanan Pelanggan</h1>
             <p>Kelola pemesanan minuman & makanan</p>
           </div>
           <div class="order-stats">
@@ -51,7 +51,7 @@
         <!-- Orders Queue -->
         <ion-row v-if="!isLoading">
           <ion-col size="12" v-if="filteredOrders.length === 0" class="empty-state">
-            <div class="empty-icon">✨</div>
+            <div class="empty-icon"><ion-icon :icon="sparklesOutline"></ion-icon></div>
             <h3>Tidak ada pesanan</h3>
             <p>Status: {{ getStatusLabel(selectedStatus) }}</p>
             <p class="empty-hint">Pesanan baru akan tampil di sini</p>
@@ -105,7 +105,7 @@
                       <span class="item-name">{{ item.product.name }}</span>
                     </div>
                     <div v-if="item.note" class="item-notes">
-                      📝 {{ item.note }}
+                      <ion-icon :icon="documentTextOutline" style="vertical-align: middle;"></ion-icon> {{ item.note }}
                     </div>
                   </div>
                 </div>
@@ -197,6 +197,9 @@ import {
   checkmarkDoneCircleOutline,
   personCircleOutline,
   listOutline,
+  cafeOutline,
+  sparklesOutline,
+  documentTextOutline,
 } from 'ionicons/icons';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useSalesStore } from '../stores/sales';
@@ -258,31 +261,13 @@ onUnmounted(() => {
   }
 });
 
-const loadOrders = () => {
+const loadOrders = async () => {
   try {
-    // Load existing BARISTA state from pending_orders
-    const existingOrders = new Map<string, OrderWithStatus>();
-    const savedOrders = localStorage.getItem('pending_orders');
-    if (savedOrders) {
-      try {
-        const parsed = JSON.parse(savedOrders);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          parsed.forEach(order => {
-            if (order.id) {
-              existingOrders.set(order.id, order);
-            }
-          });
-        }
-      } catch (e) {
-        console.error('Failed to parse saved orders', e);
-        localStorage.removeItem('pending_orders');
-      }
-    }
-
+    isLoading.value = true;
     // Load fresh orders from sales store (from KASIR transactions)
-    sales.loadFromStorage();
+    await sales.loadFromStorage();
     
-    // Convert sales to orders and merge with existing state
+    // Convert sales to orders
     const freshSalesOrders = sales.dailySales
       .filter(sale => {
         // Only include orders from today that haven't been completed
@@ -292,119 +277,23 @@ const loadOrders = () => {
       })
       .map((sale) => ({
         ...sale,
-        status: 'PENDING' as const,
+        status: (sale.status || 'PENDING') as 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED',
         createdAt: sale.date,
       }));
 
-    // Merge: keep existing orders with their current status, add new sales as PENDING
-    const mergedOrders = new Map<string, OrderWithStatus>(existingOrders);
-    freshSalesOrders.forEach(order => {
-      // If order already exists in pending_orders, keep its current status
-      // Otherwise add it as new (will be PENDING)
-      if (!mergedOrders.has(order.id)) {
-        mergedOrders.set(order.id, order);
-      }
-    });
-
-    let loadedOrders = Array.from(mergedOrders.values());
-
-    // If no sales from today, use demo orders for testing
-    if (loadedOrders.length === 0) {
-      loadedOrders = createDemoOrders();
-    }
-
-    orders.value = loadedOrders.filter(o => o.status !== 'COMPLETED');
-    saveOrders();
+    orders.value = freshSalesOrders.filter(o => o.status !== 'COMPLETED');
   } catch (error) {
     console.error('Failed to load orders:', error);
-    // Create demo orders as fallback
-    orders.value = createDemoOrders();
-    saveOrders();
+    orders.value = [];
+  } finally {
+    isLoading.value = false;
   }
 };
 
-const createDemoOrders = (): OrderWithStatus[] => {
-  return [
-    {
-      id: 'demo-001-' + Date.now(),
-      customerName: 'Budi Santoso',
-      orderType: 'DINE_IN',
-      items: [
-        {
-          product: { id: 'prod-1', name: 'Espresso Double Shot', category: 'ESPRESSO', basePrice: 25000, isActive: true },
-          qty: 1,
-          selectedVariantIds: [],
-          note: 'Extra hot'
-        },
-        {
-          product: { id: 'prod-7', name: 'Croissant', category: 'FOOD', basePrice: 40000, isActive: true },
-          qty: 1,
-          selectedVariantIds: [],
-          note: ''
-        }
-      ],
-      subtotal: 65000,
-      discount: 0,
-      tax: 0,
-      total: 65000,
-      payment: { method: 'CASH', paidAmount: 65000, change: 0 },
-      date: new Date().toISOString(),
-      status: 'PENDING' as const,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'demo-002-' + Date.now(),
-      customerName: 'Siti Nurhaliza',
-      orderType: 'DINE_IN',
-      items: [
-        {
-          product: { id: 'prod-2', name: 'Americano', category: 'ESPRESSO', basePrice: 25000, isActive: true },
-          qty: 2,
-          selectedVariantIds: [],
-          note: 'One hot, one iced'
-        },
-        {
-          product: { id: 'prod-8', name: 'Iced Tea', category: 'NON_COFFEE', basePrice: 15000, isActive: true },
-          qty: 1,
-          selectedVariantIds: [],
-          note: ''
-        }
-      ],
-      subtotal: 65000,
-      discount: 0,
-      tax: 0,
-      total: 65000,
-      payment: { method: 'QRIS', paidAmount: 65000, change: 0 },
-      date: new Date(Date.now() - 5 * 60000).toISOString(),
-      status: 'PREPARING' as const,
-      createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
-    },
-    {
-      id: 'demo-003-' + Date.now(),
-      customerName: 'Ahmad Wijaya',
-      orderType: 'TAKE_AWAY',
-      items: [
-        {
-          product: { id: 'prod-4', name: 'Latte', category: 'ESPRESSO', basePrice: 30000, isActive: true },
-          qty: 1,
-          selectedVariantIds: [],
-          note: 'Oat milk'
-        }
-      ],
-      subtotal: 30000,
-      discount: 0,
-      tax: 0,
-      total: 30000,
-      payment: { method: 'TRANSFER', paidAmount: 30000, change: 0 },
-      date: new Date(Date.now() - 15 * 60000).toISOString(),
-      status: 'READY' as const,
-      createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
-    },
-  ];
-};
+
 
 const saveOrders = () => {
-  localStorage.setItem('pending_orders', JSON.stringify(orders.value));
+  // Obsolete: We no longer save to localStorage, state is synced with backend
 };
 
 const filteredOrders = computed(() => {
@@ -457,7 +346,7 @@ const updateOrderStatus = async (
     order.status = newStatus;
     toastMessage.value = `Pesanan diubah ke: ${getStatusLabel(newStatus)}`;
     showToast.value = true;
-    saveOrders();
+    await sales.updateOrderStatus(orderId, newStatus);
   }
 };
 
@@ -469,14 +358,8 @@ const completeOrder = async (orderId: string) => {
     toastMessage.value = `Pesanan #${order.id.slice(-4).toUpperCase()} selesai!`;
     showToast.value = true;
     
-    // Save before removing
-    saveOrders();
-    
-    // Remove from list after a short delay
-    setTimeout(() => {
-      orders.value.splice(index, 1);
-      saveOrders();
-    }, 1500);
+    // Call the API to mark it completed
+    await sales.updateOrderStatus(orderId, 'COMPLETED');
   }
 };
 </script>
@@ -684,18 +567,18 @@ const completeOrder = async (orderId: string) => {
 }
 
 .status-badge.pending {
-  background: #ffebee;
-  color: #ff6b6b;
+  background: var(--app-danger-bg, rgba(239, 68, 68, 0.15));
+  color: #f44336;
 }
 
 .status-badge.preparing {
-  background: #fff3e0;
-  color: #ffa726;
+  background: var(--app-warning-bg, rgba(245, 158, 11, 0.15));
+  color: var(--ion-color-warning, #ff9800);
 }
 
 .status-badge.ready {
-  background: #e8f5e9;
-  color: #66bb6a;
+  background: var(--app-success-bg, rgba(16, 185, 129, 0.15));
+  color: var(--ion-color-success, #4caf50);
 }
 
 .customer-info {

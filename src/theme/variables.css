@@ -1,29 +1,34 @@
-﻿:root {
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
   color-scheme: light;
+  /* Global Font */
+  --ion-font-family: 'Poppins', sans-serif;
+
   /* Modern Color Palette */
   --ion-color-primary: #d97706;
   --ion-color-primary-rgb: 217, 119, 6;
-  --ion-color-secondary: #0ea5e9;
-  --ion-color-tertiary: #8b5cf6;
+  --ion-color-secondary: #16a34a; /* Matcha Green */
+  --ion-color-tertiary: #be123c; /* Cherry Red */
   --ion-color-success: #10b981;
   --ion-color-danger: #ef4444;
   --ion-color-warning: #f59e0b;
   
-  /* Modern Backgrounds */
-  --ion-background-color: #f8f9fa;
-  --ion-text-color: #111827;
+  /* Coffee Theme Backgrounds - Light Mode */
+  --ion-background-color: #fdfbf7; /* Creamy Off-White */
+  --ion-text-color: #3e2723; /* Dark Roast Brown */
   --ion-toolbar-background: #ffffff;
-  --ion-border-color: #e5e7eb;
+  --ion-border-color: #efebe9;
   
   /* Panel & Card Colors */
   --app-panel: #ffffff;
-  --app-panel-2: #f3f4f6;
+  --app-panel-2: #f5f0eb; /* Soft milky cream */
   --app-panel-3: #fffbeb;
-  --app-input-bg: #f3f4f6;
-  --app-muted: #6b7280;
+  --app-input-bg: #ffffff;
+  --app-muted: #8d6e63; /* Warm grayish brown */
   --app-card-bg: #ffffff;
-  --app-info-bg: rgba(14, 165, 233, 0.08);
-  --app-success-bg: rgba(16, 185, 129, 0.08);
+  --app-info-bg: rgba(217, 119, 6, 0.08); /* Amber tint */
+  --app-success-bg: rgba(22, 163, 74, 0.08);
   --app-warning-bg: rgba(245, 158, 11, 0.08);
   
   /* Modern Spacing & Radius */
@@ -43,21 +48,21 @@
 
 body.dark {
   color-scheme: dark;
-  /* Dark Theme Colors */
-  --ion-background-color: #0f172a;
-  --ion-text-color: #f1f5f9;
-  --ion-toolbar-background: #1e293b;
-  --ion-border-color: #475569;
+  /* Coffee Theme Colors - Dark Mode */
+  --ion-background-color: #1c1917; /* Warm Espresso/Stone */
+  --ion-text-color: #f5f5f4; /* Warm White/Ivory */
+  --ion-toolbar-background: #292524;
+  --ion-border-color: #44403c;
   
   /* Dark Panels & Cards */
-  --app-panel: #1e293b;
-  --app-panel-2: #334155;
-  --app-panel-3: #1f1f1f;
-  --app-input-bg: #334155;
-  --app-muted: #94a3b8;
-  --app-card-bg: #1e293b;
-  --app-info-bg: rgba(14, 165, 233, 0.15);
-  --app-success-bg: rgba(16, 185, 129, 0.15);
+  --app-panel: #292524; /* Mocha Gray */
+  --app-panel-2: #44403c;
+  --app-panel-3: #292524;
+  --app-input-bg: #1c1917;
+  --app-muted: #a8a29e; /* Warm muted gray */
+  --app-card-bg: #292524;
+  --app-info-bg: rgba(217, 119, 6, 0.15); /* Amber tint */
+  --app-success-bg: rgba(22, 163, 74, 0.15);
   --app-warning-bg: rgba(245, 158, 11, 0.15);
   
   /* Dark Shadows */
@@ -73,7 +78,7 @@ body.dark {
 html, body {
   min-height: 100%;
   background: var(--ion-background-color);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -81,7 +86,7 @@ html, body {
 ion-app, ion-page, ion-content {
   background: var(--ion-background-color);
   color: var(--ion-text-color);
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Modern Typography */
@@ -135,30 +140,181 @@ ion-card:hover {
   transform: translateY(-4px);
 }
 
-/* Modern Input Styles */
+/* Modern Input Styles - Enhanced */
 ion-input, ion-textarea, ion-select {
-  --padding-top: 10px;
-  --padding-bottom: 10px;
-  --padding-start: 12px;
-  --padding-end: 12px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --padding-start: 14px;
+  --padding-end: 14px;
   --background: var(--app-input-bg);
-  --border-radius: var(--app-border-radius);
-  border: 1px solid var(--ion-border-color);
-  transition: all 0.2s ease;
+  --border-radius: 10px;
+  border: 1.5px solid var(--ion-border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.95rem;
 }
 
+ion-input::placeholder, ion-textarea::placeholder {
+  opacity: 0.6;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Hover State */
+ion-input:hover:not(:disabled), 
+ion-textarea:hover:not(:disabled), 
+ion-select:hover:not(:disabled) {
+  border-color: var(--ion-border-color);
+  --box-shadow: var(--app-shadow-sm);
+}
+
+/* Focus State - Enhanced */
+ion-input.ion-focused, ion-textarea.ion-focused, ion-select.ion-focused,
 ion-input:focus, ion-textarea:focus, ion-select:focus {
   --border-color: var(--ion-color-primary);
-  --box-shadow: 0 0 0 3px var(--app-info-bg);
+  --box-shadow: 0 0 0 4px var(--app-info-bg);
+  border: 1.5px solid var(--ion-color-primary);
+  outline: none;
 }
 
-/* Modern Item Styles */
+/* Error State */
+ion-input[color="danger"], ion-textarea[color="danger"], ion-select[color="danger"],
+ion-item[color="danger"] ion-input, ion-item[color="danger"] ion-textarea, ion-item[color="danger"] ion-select {
+  --border-color: var(--ion-color-danger);
+  border-color: var(--ion-color-danger) !important;
+}
+
+ion-input[color="danger"]:focus, ion-textarea[color="danger"]:focus, ion-select[color="danger"]:focus {
+  --box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+/* Success State */
+ion-input[color="success"], ion-textarea[color="success"], ion-select[color="success"] {
+  --border-color: var(--ion-color-success);
+  border-color: var(--ion-color-success) !important;
+}
+
+/* Modern Item Styles - Enhanced */
 ion-item {
-  --border-radius: var(--app-border-radius);
-  --padding-start: 12px;
-  --padding-end: 12px;
+  --border-radius: 10px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-start: 14px;
+  --inner-padding-end: 14px;
   --inner-padding-top: 12px;
   --inner-padding-bottom: 12px;
+  --background: transparent;
+  --min-height: auto;
+  border: none;
+  margin: 8px 0;
+}
+
+ion-item.custom-input-item {
+  --background: var(--app-input-bg);
+  --border-radius: 10px;
+  border: 1.5px solid var(--ion-border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+ion-item.custom-input-item:hover {
+  --box-shadow: var(--app-shadow-sm);
+}
+
+ion-item.custom-input-item.ion-focused {
+  --border-color: var(--ion-color-primary);
+  border-color: var(--ion-color-primary) !important;
+  --box-shadow: 0 0 0 4px var(--app-info-bg);
+}
+
+ion-item.custom-input-item[color="danger"] {
+  --border-color: var(--ion-color-danger);
+  border-color: var(--ion-color-danger) !important;
+}
+
+/* Label Styles */
+ion-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+  color: var(--ion-text-color);
+  transition: all 0.2s ease;
+  margin-bottom: 6px;
+  display: block;
+}
+
+ion-label[position="stacked"] {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Native Input & Textarea Elements */
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+input[type="number"], 
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+textarea {
+  background-color: var(--app-input-bg);
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--ion-text-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+input:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  border-color: var(--ion-border-color);
+  box-shadow: var(--app-shadow-sm);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--ion-color-primary);
+  box-shadow: 0 0 0 4px var(--app-info-bg);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+/* Select Elements */
+select {
+  background-color: var(--app-input-bg);
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--ion-text-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: var(--ion-border-color);
+  box-shadow: var(--app-shadow-sm);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--ion-color-primary);
+  box-shadow: 0 0 0 4px var(--app-info-bg);
 }
 
 /* Modern Badge/Chip Styles */
@@ -168,6 +324,254 @@ ion-badge {
   --padding-end: 12px;
   font-weight: 600;
   font-size: 0.875rem;
+}
+
+/* Form Group Styles */
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+  color: var(--ion-text-color);
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Error Text Styling */
+.error-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--ion-color-danger);
+  margin-top: 4px;
+  animation: slideInUp 0.2s ease;
+  font-weight: 500;
+}
+
+.error-text ion-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* Success Text Styling */
+.success-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--ion-color-success);
+  margin-top: 4px;
+  animation: slideInUp 0.2s ease;
+  font-weight: 500;
+}
+
+/* Helper Text Styling */
+.helper-text {
+  font-size: 0.8rem;
+  color: var(--app-muted);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Input Wrapper */
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-icon-start {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--app-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-icon-end {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--app-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Shake animation for errors */
+.input-error {
+  animation: shake 0.3s ease;
+}
+
+/* File Input Styling */
+input[type="file"] {
+  display: none;
+}
+
+.file-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.file-input-trigger {
+  background-color: var(--app-input-bg);
+  border: 2px dashed var(--ion-border-color);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-input-trigger:hover {
+  border-color: var(--ion-color-primary);
+  background-color: var(--app-panel);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.file-input-trigger.active {
+  border-color: var(--ion-color-primary);
+  background-color: var(--app-info-bg);
+  border-style: solid;
+}
+
+/* Global Modern Input Styling */
+ion-input, 
+ion-textarea, 
+ion-select {
+  --background: var(--app-input-bg);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  width: 100%;
+}
+
+/* Focus Glow Effect for Inputs */
+ion-input.has-focus, 
+ion-textarea.has-focus, 
+ion-select.has-focus,
+ion-input.ion-focused,
+ion-textarea.ion-focused,
+ion-select.ion-focused {
+  border-color: var(--ion-color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15);
+}
+
+/* Clean up ion-item borders when they contain our modern inputs */
+ion-item {
+  --border-width: 0;
+  --inner-border-width: 0;
+  --highlight-height: 0;
+}
+
+ion-datetime {
+  --background: var(--app-panel);
+  background: var(--app-panel);
+  border-radius: 16px;
+  box-shadow: var(--app-shadow-sm);
+  --title-color: var(--ion-text-color);
+  color: var(--ion-text-color);
+}
+
+ion-datetime-button {
+  --background: var(--app-input-bg);
+  background: var(--app-input-bg);
+  border-radius: 8px;
+  color: var(--ion-text-color);
+}
+
+ion-datetime-button::part(native) {
+  color: var(--ion-text-color);
+  background: var(--app-panel);
+}
+
+/* Segment Button Styling */
+ion-segment {
+  --background: transparent;
+  padding: 8px;
+  border-radius: 10px;
+  background-color: var(--app-panel-2);
+}
+
+ion-segment-button {
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --border-radius: 8px;
+  --color-checked: var(--ion-color-primary);
+  --indicator-color: var(--ion-color-primary);
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+ion-segment-button.segment-button-checked {
+  background-color: var(--ion-color-primary);
+  color: white;
+}
+
+/* Global Buttons & Searchbar Modernization */
+ion-button {
+  --border-radius: 12px;
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+ion-searchbar {
+  --border-radius: 12px;
+  --box-shadow: none;
+  --background: var(--app-panel-2);
+}
+
+/* Checkbox & Radio */
+ion-checkbox, ion-radio {
+  --size: 20px;
+  --border-width: 2px;
+}
+
+/* Toggle Switch */
+ion-toggle {
+  --track-background-checked: var(--ion-color-primary);
+  --handle-background: var(--app-panel);
 }
 
 /* Smooth Transitions */

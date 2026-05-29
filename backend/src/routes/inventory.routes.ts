@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { getInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../controllers/inventory.controller';
-import { authenticate, requireRole } from '../middlewares/auth.middleware';
+import { getInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../controllers/inventory.controller.js';
+import { authenticate, requireRole } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 

@@ -142,10 +142,17 @@
     >
       <ion-header>
         <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button @click="isModalOpen = false">Tutup</ion-button>
+          <ion-title>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <ion-icon :icon="editingMaterial ? createOutline : addCircleOutline"></ion-icon>
+              <span>{{ editingMaterial ? 'Edit Bahan Baku' : 'Tambah Bahan Baku' }}</span>
+            </div>
+          </ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="isModalOpen = false">
+              <ion-icon :icon="closeOutline" slot="icon-only"></ion-icon>
+            </ion-button>
           </ion-buttons>
-          <ion-title>{{ editingMaterial ? 'Edit Bahan Baku' : 'Tambah Bahan Baku' }}</ion-title>
         </ion-toolbar>
       </ion-header>
       <ion-content class="modal-content">
@@ -237,10 +244,17 @@
     >
       <ion-header>
         <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button @click="isStockModalOpen = false">Tutup</ion-button>
+          <ion-title>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <ion-icon :icon="refreshOutline"></ion-icon>
+              <span>Update Stok</span>
+            </div>
+          </ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="isStockModalOpen = false">
+              <ion-icon :icon="closeOutline" slot="icon-only"></ion-icon>
+            </ion-button>
           </ion-buttons>
-          <ion-title>Update Stok</ion-title>
         </ion-toolbar>
       </ion-header>
       <ion-content class="modal-content">
@@ -302,6 +316,9 @@ import {
   sunnyOutline,
   saveOutline,
   checkmarkOutline,
+  createOutline,
+  addCircleOutline,
+  closeOutline,
 } from 'ionicons/icons';
 import { ref, computed } from 'vue';
 import { useRawMaterialsStore } from '../stores/rawMaterials';
@@ -463,7 +480,7 @@ rawMaterialsStore.loadTotalCost('store-1');
 
 <style scoped>
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #c26b2d 0%, #e58b43 100%);
 }
 
 .toolbar-inner {
@@ -503,7 +520,7 @@ rawMaterialsStore.loadTotalCost('store-1');
 }
 
 .page-content {
-  --background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+  --background: var(--ion-background-color);
 }
 
 .page-shell {
@@ -513,9 +530,9 @@ rawMaterialsStore.loadTotalCost('store-1');
 }
 
 .panel {
-  background: white;
+  background: var(--app-panel);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--app-soft-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
   overflow: hidden;
 }
 
@@ -528,12 +545,19 @@ rawMaterialsStore.loadTotalCost('store-1');
   border-bottom: 1px solid #eee;
 }
 
+.add-btn {
+  --background: linear-gradient(135deg, #c26b2d 0%, #e58b43 100%);
+  height: 48px;
+  font-weight: 600;
+}
+
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #c26b2d 0%, #e58b43 100%);
   color: white;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 16px;
   text-align: center;
+  box-shadow: var(--app-soft-shadow);
 }
 
 .stat-card.alert {
@@ -562,8 +586,8 @@ rawMaterialsStore.loadTotalCost('store-1');
 }
 
 .search-box {
-  background: #f5f5f5;
-  border-radius: 8px;
+  background: var(--app-panel-2);
+  border-radius: 16px;
   padding: 0 12px;
 }
 
@@ -575,16 +599,25 @@ rawMaterialsStore.loadTotalCost('store-1');
 
 .filter-btn {
   padding: 8px 16px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid var(--ion-color-step-150, #ddd);
+  background: var(--app-panel);
+  color: var(--ion-text-color);
   border-radius: 20px;
   cursor: pointer;
   font-size: 13px;
   transition: all 0.2s;
 }
 
+.action-btn {
+  --background: transparent;
+  --color: white;
+  margin: 0;
+  height: 40px;
+  font-size: 13px;
+}
+
 .filter-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #c26b2d 0%, #e58b43 100%);
   color: white;
   border-color: transparent;
 }
@@ -607,10 +640,12 @@ rawMaterialsStore.loadTotalCost('store-1');
 }
 
 .material-card {
-  border: 1px solid #eee;
-  border-radius: 8px;
+  border: 1px solid var(--ion-border-color);
+  border-radius: 16px;
   overflow: hidden;
-  background: white;
+  background: var(--app-panel);
+  box-shadow: var(--app-soft-shadow);
+  color: var(--ion-text-color);
   transition: all 0.3s;
 }
 
@@ -625,7 +660,7 @@ rawMaterialsStore.loadTotalCost('store-1');
 
 .card-header {
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #c26b2d 0%, #e58b43 100%);
   color: white;
   display: flex;
   justify-content: space-between;
@@ -656,34 +691,34 @@ rawMaterialsStore.loadTotalCost('store-1');
 }
 
 .info-row .label {
-  color: #666;
+  color: var(--app-muted);
   font-weight: 500;
 }
 
 .info-row .value {
   font-weight: 600;
-  color: #333;
+  color: var(--ion-text-color);
 }
 
 .info-row .value.highlight {
-  color: #667eea;
+  color: var(--ion-color-primary);
 }
 
 .alert-message {
   margin-top: 8px;
   padding: 8px;
-  background: #fff3cd;
-  border-left: 3px solid #ffc107;
-  color: #856404;
+  background: var(--app-warning-bg, rgba(245, 158, 11, 0.15));
+  border-left: 3px solid var(--ion-color-warning, #ffc107);
+  color: var(--ion-color-warning, #856404);
   font-size: 12px;
   border-radius: 4px;
 }
 
 .card-actions {
-  padding: 8px 12px;
+  padding: 12px;
   display: flex;
-  gap: 4px;
-  border-top: 1px solid #eee;
+  gap: 8px;
+  border-top: 1px solid var(--ion-border-color);
 }
 
 .card-actions ion-button {
@@ -713,14 +748,7 @@ rawMaterialsStore.loadTotalCost('store-1');
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
-}
-
-.form-group ion-input,
-.form-group ion-select {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 8px 12px;
+  color: var(--ion-text-color);
 }
 
 .form-row {
@@ -732,15 +760,15 @@ rawMaterialsStore.loadTotalCost('store-1');
 .form-total {
   display: flex;
   justify-content: space-between;
-  padding: 12px;
-  background: #f5f5f5;
-  border-radius: 6px;
+  padding: 16px;
+  background: var(--app-panel-2);
+  border-radius: 12px;
   margin-bottom: 16px;
   font-weight: 600;
 }
 
 .form-total .highlight {
-  color: #667eea;
+  color: var(--ion-color-primary);
 }
 
 .modal-actions {
@@ -751,20 +779,20 @@ rawMaterialsStore.loadTotalCost('store-1');
 }
 
 .stock-form .material-info {
-  background: #f5f5f5;
+  background: var(--app-panel-2);
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 20px;
 }
 
 .stock-form .material-info h3 {
   margin: 0 0 8px 0;
-  color: #333;
+  color: var(--ion-text-color);
 }
 
 .stock-form .material-info p {
   margin: 0;
-  color: #666;
+  color: var(--app-muted);
   font-size: 14px;
 }
 </style>

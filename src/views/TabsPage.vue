@@ -22,6 +22,12 @@
     <ion-tabs>
       <ion-router-outlet />
       <ion-tab-bar slot="bottom" class="custom-tab-bar">
+        <!-- Dashboard Tab - OWNER only -->
+        <ion-tab-button v-if="auth.isOwner" tab="dashboard" href="/tabs/dashboard">
+          <ion-icon :icon="homeOutline" />
+          <ion-label>Home</ion-label>
+        </ion-tab-button>
+
         <!-- Kasir Tab - OWNER & CASHIER -->
         <ion-tab-button v-if="auth.isOwner || auth.isCashier" tab="kasir" href="/tabs/kasir">
           <ion-icon :icon="cashRegister" />
@@ -93,6 +99,7 @@ import {
   logOut,
   documentText,
   cube,
+  homeOutline,
 } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';

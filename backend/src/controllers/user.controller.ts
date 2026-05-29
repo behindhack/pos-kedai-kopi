@@ -1,24 +1,53 @@
 import { Request, Response } from 'express';
-import User from '../models/User';
+import bcrypt from 'bcryptjs';
+import prisma from '../lib/prisma.js';
+
+// Create a new user (for OWNER only)
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ error: 'Name, email, password, and role are required' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const user = await prisma.user.create({
+      data: { name, email, passwordHash, role },
+    });
+
+    res.status(201).json({
+      message: 'User created successfully',
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    });
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 // Get all users (restricted to OWNER usually via middleware)
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (_req: Request, res: Response) => {
   try {
-    // Return all users, exclude the hashed passwords
-    const users = await User.find().select('-passwordHash');
-    
-    // Map _id to id so it matches frontend interface perfectly
-    const formattedUsers = users.map(user => ({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      isActive: user.isActive,
-      createdAt: (user as any).createdAt,
-      updatedAt: (user as any).updatedAt
-    }));
-
-    res.json(formattedUsers);
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -31,21 +60,25 @@ export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, role } = req.body;
 
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (user.role === 'OWNER' && role && role !== 'OWNER') {
       return res.status(403).json({ error: 'Cannot change the role of an OWNER account' });
     }
 
-    user.name = name || user.name;
-    user.role = role || user.role;
+    const updated = await prisma.user.update({
+      where: { id: Number(id) },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(role !== undefined && { role }),
+      },
+    });
 
-    await user.save();
-
-    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json({
+      success: true,
+      user: { id: updated.id, name: updated.name, email: updated.email, role: updated.role },
+    });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -57,16 +90,14 @@ export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
     if (user.role === 'OWNER') {
       return res.status(403).json({ error: 'Cannot delete an OWNER account' });
     }
 
-    await User.findByIdAndDelete(id);
+    await prisma.user.delete({ where: { id: Number(id) } });
 
     res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {

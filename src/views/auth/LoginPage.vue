@@ -10,22 +10,7 @@
       <div class="login-container">
         <div class="logo-box">
           <div class="logo-icon">
-            <svg viewBox="0 0 100 100" class="coffee-svg">
-              <!-- Steam -->
-              <path class="steam steam-1" d="M35 38 Q37 28 35 18 Q33 8 35 0" />
-              <path class="steam steam-2" d="M50 35 Q52 25 50 15 Q48 5 50 -5" />
-              <path class="steam steam-3" d="M65 38 Q67 28 65 18 Q63 8 65 0" />
-              <!-- Cup body -->
-              <path d="M20 42 L20 72 Q20 85 35 88 L65 88 Q80 85 80 72 L80 42 Z" fill="#6F4E37" />
-              <!-- Cup shine -->
-              <path d="M28 48 L28 68 Q28 76 36 78" stroke="rgba(255,255,255,0.2)" stroke-width="3" fill="none" stroke-linecap="round" />
-              <!-- Handle -->
-              <path d="M80 50 Q95 50 95 62 Q95 74 80 74" stroke="#6F4E37" stroke-width="6" fill="none" stroke-linecap="round" />
-              <!-- Coffee surface -->
-              <ellipse cx="50" cy="44" rx="30" ry="5" fill="#8B6914" />
-              <!-- Saucer -->
-              <ellipse cx="50" cy="92" rx="38" ry="6" fill="#5C3D2E" />
-            </svg>
+            <img src="/assets/kopikas-logo.png" alt="Kopikas Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;" />
           </div>
           <h1 class="logo-title">KOPIKAS</h1>
           <p class="logo-subtitle">Sistem Kasir Kedai Kopi</p>
@@ -66,6 +51,9 @@
             <div v-if="errors.password" class="error-text">
               <ion-icon :icon="alertCircleOutline" />
               {{ errors.password }}
+            </div>
+            <div class="forgot-password-link">
+              <router-link to="/auth/forgot-password">Lupa Password?</router-link>
             </div>
           </div>
 
@@ -212,38 +200,9 @@ const goRegister = () => {
 }
 
 .logo-icon {
-  width: 120px;
-  height: 120px;
+  width: 240px;
+  height: 240px;
   margin: 0 auto 12px;
-}
-
-.coffee-svg {
-  width: 100%;
-  height: 100%;
-}
-
-.steam {
-  fill: none;
-  stroke: rgba(210, 170, 110, 0.5);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  animation: steamRise 2.5s ease-in-out infinite;
-}
-
-.steam-2 {
-  animation-delay: 0.4s;
-  stroke: rgba(210, 170, 110, 0.4);
-}
-
-.steam-3 {
-  animation-delay: 0.8s;
-  stroke: rgba(210, 170, 110, 0.35);
-}
-
-@keyframes steamRise {
-  0% { opacity: 0.3; transform: translateY(0); }
-  50% { opacity: 0.8; }
-  100% { opacity: 0; transform: translateY(-8px); }
 }
 
 .logo-title {
@@ -323,17 +282,23 @@ const goRegister = () => {
 }
 
 .custom-input-item {
-  --padding-start: 12px;
-  --padding-end: 12px;
+  --padding-start: 14px;
+  --padding-end: 14px;
   --min-height: 48px;
-  border: 1px solid var(--ion-color-step-300);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  --background: var(--app-input-bg);
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-input-item:hover {
+  --box-shadow: var(--app-shadow-sm);
 }
 
 .custom-input-item:focus-within {
-  border-color: var(--ion-color-primary);
-  box-shadow: 0 0 0 2px rgba(194, 107, 45, 0.1);
+  --border-color: var(--ion-color-primary);
+  border: 1.5px solid var(--ion-color-primary);
+  box-shadow: 0 0 0 4px var(--app-info-bg);
 }
 
 .error-text {
@@ -355,6 +320,22 @@ const goRegister = () => {
   font-size: 16px;
   margin-top: 8px;
   --border-radius: 8px;
+}
+
+.forgot-password-link {
+  text-align: right;
+  margin-top: 4px;
+}
+
+.forgot-password-link a {
+  font-size: 13px;
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.forgot-password-link a:hover {
+  text-decoration: underline;
 }
 
 .register-section {

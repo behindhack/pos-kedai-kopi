@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import type { ShopSettings } from '../types';
 
+import { apiClient } from '../services/api';
+
 export const useShopStore = defineStore('shop', {
   state: () => ({
     settings: {
@@ -14,18 +16,35 @@ export const useShopStore = defineStore('shop', {
         paperWidth: 80,
       },
     } as ShopSettings,
+    isLoading: false,
+    error: null as string | null,
   }),
 
   actions: {
-    loadFromStorage() {
-      const raw = localStorage.getItem('shopSettings');
-      if (raw) {
-        this.settings = JSON.parse(raw);
+    async loadFromStorage() {
+      this.isLoading = true;
+      try {
+        const response = await apiClient.getSettings();
+        if (response.data && !response.error) {
+          // Merge backend settings with defaults
+          this.settings = { ...this.settings, ...response.data };
+        }
+      } catch (e) {
+        console.error('Failed to load shop settings:', e);
+      } finally {
+        this.isLoading = false;
       }
     },
 
-    saveToStorage() {
-      localStorage.setItem('shopSettings', JSON.stringify(this.settings));
+    async saveToStorage() {
+      this.isLoading = true;
+      try {
+        await apiClient.updateSettings(this.settings);
+      } catch (e) {
+        console.error('Failed to save shop settings:', e);
+      } finally {
+        this.isLoading = false;
+      }
     },
 
     updateSettings(newSettings: Partial<ShopSettings>) {

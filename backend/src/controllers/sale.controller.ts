@@ -1,52 +1,65 @@
 import { Request, Response } from 'express';
-import Sale from '../models/Sale';
+import prisma from '../lib/prisma.js';
 
 export const getSales = async (req: Request, res: Response) => {
   try {
     const { date, status } = req.query;
-    const filter: any = {};
-    
+
+    const where: any = {};
+
     if (status) {
-      filter.status = status;
+      where.status = status as string;
     }
 
     if (date) {
-      // Filter by specific day if requested
       const queryDate = new Date(date as string);
-      const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
-      
-      filter.date = {
-        $gte: startOfDay,
-        $lte: endOfDay,
-      };
+      const startOfDay = new Date(queryDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(queryDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      where.date = { gte: startOfDay, lte: endOfDay };
     }
 
-    const sales = await Sale.find(filter).sort({ createdAt: -1 });
-    
-    // Map to frontend expected format
+    const sales = await prisma.sale.findMany({
+      where,
+      include: {
+        items: {
+          include: { variants: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
     const formatted = sales.map((s) => ({
-      id: s._id,
+      id: s.id,
       orderNumber: s.orderNumber,
       customerName: s.customerName,
       orderType: s.orderType,
-      items: s.items.map(item => ({
+      items: s.items.map((item) => ({
         product: {
           id: item.productId,
           name: item.productName,
           category: item.productCategory,
-          basePrice: item.basePrice,
-          variants: item.selectedVariants, // simplified
+          basePrice: Number(item.basePrice),
+          variants: item.variants.map((v) => ({
+            id: v.variantId,
+            name: v.name,
+            extraPrice: Number(v.extraPrice),
+          })),
         },
         qty: item.qty,
-        selectedVariantIds: item.selectedVariants.map(v => v.variantId),
+        selectedVariantIds: item.variants.map((v) => v.variantId),
         note: item.note,
       })),
-      subtotal: s.subtotal,
-      discount: s.discount,
-      tax: s.tax,
-      total: s.total,
-      payment: s.payment,
+      subtotal: Number(s.subtotal),
+      discount: Number(s.discount),
+      tax: Number(s.tax),
+      total: Number(s.total),
+      payment: {
+        method: s.paymentMethod,
+        paidAmount: Number(s.paidAmount),
+        change: Number(s.changeAmount),
+      },
       status: s.status,
       date: s.date.toISOString(),
       createdAt: s.createdAt.toISOString(),
@@ -62,32 +75,92 @@ export const getSales = async (req: Request, res: Response) => {
 export const createSale = async (req: Request, res: Response) => {
   try {
     const saleData = req.body;
-    
-    // Convert frontend structure to backend structure
-    const backendItems = saleData.items.map((item: any) => ({
-      productId: item.product.id,
-      productName: item.product.name,
-      productCategory: item.product.category,
-      basePrice: item.product.basePrice,
-      qty: item.qty,
-      selectedVariants: item.selectedVariantIds.map((vId: string) => {
-        const variant = item.product.variants?.find((v: any) => v.id === vId);
-        return {
-          variantId: vId,
-          name: variant?.name || 'Unknown',
-          extraPrice: variant?.extraPrice || 0,
-        };
-      }),
-      note: item.note,
-    }));
 
-    const sale = new Sale({
-      ...saleData,
-      items: backendItems,
-      date: new Date(saleData.date || Date.now()),
+    // Generate sequential orderNumber for the day
+    const queryDate = new Date(saleData.date || Date.now());
+    const startOfDay = new Date(queryDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(queryDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const countToday = await prisma.sale.count({
+      where: { date: { gte: startOfDay, lte: endOfDay } },
     });
 
-    await sale.save();
+    const newOrderNumber = (countToday + 1).toString().padStart(3, '0');
+
+    const paymentMethod = saleData.paymentMethod || saleData.payment?.method || 'CASH';
+    const paidAmount = saleData.paidAmount || saleData.payment?.paidAmount || saleData.total;
+    const changeAmount = paidAmount - saleData.total;
+
+    // Build items for Prisma nested create
+    const itemsData = saleData.items.map((item: any) => {
+      const selectedVariants = (item.selectedVariantIds || []).map((vId: string) => {
+        const variant = item.product.variants?.find((v: any) => v.id === vId || v.id === Number(vId));
+        return {
+          variantId: String(vId),
+          name: variant?.name || 'Unknown',
+          extraPrice: Number(variant?.extraPrice || 0),
+        };
+      });
+
+      return {
+        productId: Number(item.product.id),
+        productName: item.product.name,
+        productCategory: item.product.category || null,
+        basePrice: Number(item.product.basePrice),
+        qty: Number(item.qty),
+        note: item.note || null,
+        variants: { create: selectedVariants },
+      };
+    });
+
+    const sale = await prisma.sale.create({
+      data: {
+        orderNumber: newOrderNumber,
+        customerName: saleData.customerName || null,
+        orderType: saleData.orderType,
+        subtotal: Number(saleData.subtotal),
+        discount: Number(saleData.discount || 0),
+        tax: Number(saleData.tax || 0),
+        total: Number(saleData.total),
+        paymentMethod: paymentMethod,
+        paidAmount: Number(paidAmount),
+        changeAmount: Number(changeAmount),
+        date: queryDate,
+        status: 'PENDING',
+        items: { create: itemsData },
+      },
+      include: { items: { include: { variants: true } } },
+    });
+
+    // Deduct stock based on recipe or product stock
+    for (const item of saleData.items) {
+      const product = await prisma.product.findUnique({
+        where: { id: Number(item.product.id) },
+        include: { recipe: true },
+      });
+
+      if (product) {
+        if (product.recipe && product.recipe.length > 0) {
+          // Deduct from raw materials based on recipe
+          for (const r of product.recipe) {
+            const amountToDeduct = Number(r.quantity) * Number(item.qty);
+            await prisma.rawMaterial.update({
+              where: { id: r.materialId },
+              data: { quantity: { decrement: amountToDeduct } },
+            });
+          }
+        } else {
+          // Fallback: Deduct from product stock directly
+          await prisma.product.update({
+            where: { id: Number(item.product.id) },
+            data: { stock: { decrement: Number(item.qty) } },
+          });
+        }
+      }
+    }
+
     res.status(201).json(sale);
   } catch (error) {
     console.error('Create sale error:', error);
@@ -105,11 +178,14 @@ export const updateSaleStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    const sale = await Sale.findByIdAndUpdate(id, { status }, { new: true });
-    if (!sale) return res.status(404).json({ error: 'Sale not found' });
-    
+    const sale = await prisma.sale.update({
+      where: { id: Number(id) },
+      data: { status },
+    });
+
     res.json(sale);
   } catch (error) {
+    console.error('Update sale status error:', error);
     res.status(400).json({ error: 'Bad request' });
   }
 };
