@@ -165,9 +165,9 @@ export const createSale = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(sale);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create sale error:', error);
-    res.status(400).json({ error: 'Bad request' });
+    res.status(400).json({ error: error.message || 'Bad request' });
   }
 };
 
