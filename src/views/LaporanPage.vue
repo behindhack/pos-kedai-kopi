@@ -174,7 +174,7 @@
                   <div class="col-subtotal"><strong>{{ formatCurrency(grossRevenue) }}</strong></div>
                   <div class="col-discount"><strong>{{ formatCurrency(totalDiscount) }}</strong></div>
                   <div class="col-tax"><strong>{{ formatCurrency(totalTax) }}</strong></div>
-                  <div class="col-total"><strong style="color: #c26b2d;">{{ formatCurrency(netRevenue) }}</strong></div>
+                  <div class="col-total"><strong style="color: #c26b2d;">{{ formatCurrency(totalCollected) }}</strong></div>
                   <div class="col-method"></div>
                 </div>
               </div>
@@ -308,7 +308,7 @@
                 <div class="table-footer">
                   <div class="col-method"><strong>Total</strong></div>
                   <div class="col-count"><strong>{{ totalTransactions }}</strong></div>
-                  <div class="col-amount"><strong>{{ formatCurrency(netRevenue) }}</strong></div>
+                  <div class="col-amount"><strong>{{ formatCurrency(totalCollected) }}</strong></div>
                   <div class="col-percent"><strong>100%</strong></div>
                 </div>
               </div>
@@ -498,11 +498,12 @@ const reportPeriodText = computed(() => {
 const grossRevenue = computed(() => daySales.value.reduce((sum, s) => sum + s.subtotal, 0));
 const totalDiscount = computed(() => daySales.value.reduce((sum, s) => sum + s.discount, 0));
 const totalTax = computed(() => daySales.value.reduce((sum, s) => sum + s.tax, 0));
-const netRevenue = computed(() => daySales.value.reduce((sum, s) => sum + s.total, 0));
+const netRevenue = computed(() => grossRevenue.value - totalDiscount.value);
+const totalCollected = computed(() => daySales.value.reduce((sum, s) => sum + s.total, 0));
 const totalTransactions = computed(() => daySales.value.length);
 
 const averageTransaction = computed(() => 
-  totalTransactions.value > 0 ? netRevenue.value / totalTransactions.value : 0
+  totalTransactions.value > 0 ? totalCollected.value / totalTransactions.value : 0
 );
 
 const averageItems = computed(() => {
@@ -548,9 +549,9 @@ const paymentMethodDetails = computed(() => {
   const qrisCount = daySales.value.filter((s) => s.payment.method === 'QRIS').length;
   const transferCount = daySales.value.filter((s) => s.payment.method === 'TRANSFER').length;
 
-  const cashPercent = netRevenue.value > 0 ? (cashIn.value / netRevenue.value) * 100 : 0;
-  const qrisPercent = netRevenue.value > 0 ? (qrisIn.value / netRevenue.value) * 100 : 0;
-  const transferPercent = netRevenue.value > 0 ? (transferIn.value / netRevenue.value) * 100 : 0;
+  const cashPercent = totalCollected.value > 0 ? (cashIn.value / totalCollected.value) * 100 : 0;
+  const qrisPercent = totalCollected.value > 0 ? (qrisIn.value / totalCollected.value) * 100 : 0;
+  const transferPercent = totalCollected.value > 0 ? (transferIn.value / totalCollected.value) * 100 : 0;
 
   return [
     { method: 'cash', label: 'Tunai (Cash)', count: cashCount, amount: cashIn.value, percent: cashPercent },
@@ -629,7 +630,7 @@ const exportExcel = async () => {
 
     paymentData.push(
       [],
-      ['Total', totalTransactions.value, formatCurrencyRaw(netRevenue.value), '100%']
+      ['Total', totalTransactions.value, formatCurrencyRaw(totalCollected.value), '100%']
     );
 
     const paymentSheet = XLSX.utils.aoa_to_sheet(paymentData);
@@ -708,7 +709,7 @@ const exportExcel = async () => {
       [],
       ['TOTAL', '', '', daySales.value.length + ' transaksi', daySales.value.reduce((sum, s) => sum + s.items.length, 0), 
        formatCurrencyRaw(grossRevenue.value), formatCurrencyRaw(totalDiscount.value), formatCurrencyRaw(totalTax.value), 
-       formatCurrencyRaw(netRevenue.value), '']
+       formatCurrencyRaw(totalCollected.value), '']
     );
 
     const detailSheet = XLSX.utils.aoa_to_sheet(detailData);
