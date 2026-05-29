@@ -202,7 +202,7 @@ model Setting {
   id                Int      @id @default(autoincrement())
   name              String   @default("Kedai Kopi") @db.VarChar(255)
   shopLogo          String   @default("☕") @map("shop_logo") @db.VarChar(10)
-  address           String   @default("Alamat Kedai Kopi") @db.Text
+  address           String   @db.Text
   phone             String   @default("081234567890") @db.VarChar(50)
   receiptPrinterIp  String?  @map("receipt_printer_ip") @db.VarChar(100)
   printShowLogo     Boolean  @default(true) @map("print_show_logo")
