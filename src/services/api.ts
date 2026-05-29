@@ -170,9 +170,10 @@ class APIClient {
   // ==========================================
 
   async createSale(data: any) {
+    console.log('--- CREATE SALE API V2 CALLED ---');
     try {
       const response = await axiosInstance.post('/sales', data);
-      return { data: { sale: response.data, change: response.data.payment.change }, error: null };
+      return { data: { sale: response.data }, error: null };
     } catch (error) {
       return handleApiError(error);
     }

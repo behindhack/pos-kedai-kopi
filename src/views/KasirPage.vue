@@ -318,7 +318,7 @@
                   <span>Dibayar:</span>
                   <span>{{ formatCurrency(lastSale.payment.paidAmount) }}</span>
                 </div>
-                <div v-if="lastSale.payment.change > 0" class="receipt-row">
+                <div v-if="lastSale.payment?.change > 0" class="receipt-row">
                   <span>Kembalian:</span>
                   <span>{{ formatCurrency(lastSale.payment.change) }}</span>
                 </div>

@@ -205,7 +205,7 @@
               <span>Metode</span>
               <strong>{{ lastSale.payment.method }}</strong>
             </div>
-            <div v-if="lastSale.payment.change > 0" class="summary-item">
+            <div v-if="lastSale.payment?.change > 0" class="summary-item">
               <span>Kembalian</span>
               <strong>{{ formatCurrency(lastSale.payment.change) }}</strong>
             </div>
@@ -387,8 +387,9 @@ const processPayment = async () => {
       await toast.present();
     }
   } catch (error: any) {
+    console.error('Process Payment Error:', error);
     const toast = await toastController.create({
-      message: error.message || 'Terjadi kesalahan',
+      message: (error.stack || error.message) + ' (Tolong screenshot ini)',
       duration: 2000,
       position: 'top',
       color: 'danger',

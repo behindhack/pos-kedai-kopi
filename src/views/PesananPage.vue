@@ -189,6 +189,8 @@ import {
   IonIcon,
   IonToast,
   IonSpinner,
+  onIonViewWillEnter,
+  onIonViewWillLeave
 } from '@ionic/vue';
 import {
   timeOutline,
@@ -201,7 +203,7 @@ import {
   sparklesOutline,
   documentTextOutline,
 } from 'ionicons/icons';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useSalesStore } from '../stores/sales';
 import { formatTime } from '../utils/formatters';
 import type { Sale } from '../types';
@@ -231,7 +233,7 @@ const isLoading = ref(true);
 
 let bc: BroadcastChannel | null = null;
 
-onMounted(() => {
+onIonViewWillEnter(() => {
   loadOrders();
   isLoading.value = false;
   
@@ -252,7 +254,7 @@ onMounted(() => {
   }
 });
 
-onUnmounted(() => {
+onIonViewWillLeave(() => {
   if (timeInterval) {
     clearInterval(timeInterval);
   }
@@ -567,18 +569,18 @@ const completeOrder = async (orderId: string) => {
 }
 
 .status-badge.pending {
-  background: var(--app-danger-bg, rgba(239, 68, 68, 0.15));
-  color: #f44336;
+  background: #ef4444;
+  color: #ffffff;
 }
 
 .status-badge.preparing {
-  background: var(--app-warning-bg, rgba(245, 158, 11, 0.15));
-  color: var(--ion-color-warning, #ff9800);
+  background: #f59e0b;
+  color: #ffffff;
 }
 
 .status-badge.ready {
-  background: var(--app-success-bg, rgba(16, 185, 129, 0.15));
-  color: var(--ion-color-success, #4caf50);
+  background: #10b981;
+  color: #ffffff;
 }
 
 .customer-info {
@@ -703,6 +705,7 @@ const completeOrder = async (orderId: string) => {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
+  --color: #ffffff; /* Force text to white for contrast */
 }
 
 /* Responsive Design */

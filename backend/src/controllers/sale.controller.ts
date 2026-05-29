@@ -90,6 +90,31 @@ export const createSale = async (req: Request, res: Response) => {
 
       const newOrderNumber = (countToday + 1).toString().padStart(3, '0');
 
+      const itemsData = saleData.items.map((item: any) => {
+        return {
+          productId: Number(item.product.id),
+          productName: item.product.name,
+          productCategory: item.product.category || 'Uncategorized',
+          basePrice: Number(item.product.basePrice),
+          qty: Number(item.qty),
+          note: item.note || null,
+          variants: item.selectedVariantIds && item.selectedVariantIds.length > 0 
+            ? {
+                create: item.selectedVariantIds.map((vId: string) => {
+                  const variant = item.product.variants?.find((v: any) => String(v.id) === String(vId));
+                  return {
+                    variantId: String(vId),
+                    name: variant ? variant.name : String(vId),
+                    extraPrice: variant ? Number(variant.extraPrice) : 0
+                  };
+                })
+              }
+            : undefined
+        };
+      });
+
+      const changeAmount = Number(saleData.paidAmount) - Number(saleData.total);
+
       const createdSale = await tx.sale.create({
         data: {
           orderNumber: newOrderNumber,
@@ -99,9 +124,9 @@ export const createSale = async (req: Request, res: Response) => {
           discount: Number(saleData.discount || 0),
           tax: Number(saleData.tax || 0),
           total: Number(saleData.total),
-          paymentMethod: paymentMethod,
-          paidAmount: Number(paidAmount),
-          changeAmount: Number(changeAmount),
+          paymentMethod: saleData.paymentMethod,
+          paidAmount: Number(saleData.paidAmount),
+          changeAmount: changeAmount > 0 ? changeAmount : 0,
           date: queryDate,
           status: 'PENDING',
           items: { create: itemsData },

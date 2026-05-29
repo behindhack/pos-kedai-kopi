@@ -280,11 +280,11 @@ export const printReceipt = (sale: Sale, shopSettings: ShopSettings) => {
             </div>
   `;
 
-  if (sale.payment.change > 0) {
+  if (sale.payment?.change > 0) {
     receiptContent += `
       <div class="payment-method">
         <span>Kembalian</span>
-        <span>${formatCurrency(sale.payment.change)}</span>
+        <span>${formatCurrency(sale.payment?.change)}</span>
       </div>
     `;
   }
