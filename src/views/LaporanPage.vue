@@ -221,6 +221,14 @@
                   <h4>B. Biaya Operasional</h4>
                   <div class="form-row">
                     <div class="form-group">
+                      <label>Gaji Karyawan (Rp)</label>
+                      <ion-input 
+                        v-model.number="expensesData.payroll"
+                        type="number"
+                        placeholder="0"
+                      ></ion-input>
+                    </div>
+                    <div class="form-group">
                       <label>Listrik & Air (Rp)</label>
                       <ion-input 
                         v-model.number="expensesData.utilities"
@@ -237,9 +245,35 @@
                       ></ion-input>
                     </div>
                     <div class="form-group">
-                      <label>Gaji (Rp)</label>
+                      <label>Internet (Rp)</label>
                       <ion-input 
-                        v-model.number="expensesData.payroll"
+                        v-model.number="expensesData.internet"
+                        type="number"
+                        placeholder="0"
+                      ></ion-input>
+                    </div>
+                  </div>
+                  <div class="form-row" style="margin-top: 12px;">
+                    <div class="form-group">
+                      <label>Promosi (Rp)</label>
+                      <ion-input 
+                        v-model.number="expensesData.promosi"
+                        type="number"
+                        placeholder="0"
+                      ></ion-input>
+                    </div>
+                    <div class="form-group">
+                      <label>Transportasi (Rp)</label>
+                      <ion-input 
+                        v-model.number="expensesData.transportasi"
+                        type="number"
+                        placeholder="0"
+                      ></ion-input>
+                    </div>
+                    <div class="form-group">
+                      <label>Admin (Rp)</label>
+                      <ion-input 
+                        v-model.number="expensesData.admin"
                         type="number"
                         placeholder="0"
                       ></ion-input>
@@ -434,6 +468,10 @@ const expensesData = ref({
   utilities: 0,
   rent: 0,
   payroll: 0,
+  internet: 0,
+  promosi: 0,
+  transportasi: 0,
+  admin: 0,
   otherExpenses: 0,
 });
 
@@ -570,7 +608,14 @@ const grossProfit = computed(() => {
 });
 
 const totalOperatingExpenses = computed(() => {
-  return expensesData.value.utilities + expensesData.value.rent + expensesData.value.payroll + expensesData.value.otherExpenses;
+  return expensesData.value.utilities + 
+         expensesData.value.rent + 
+         expensesData.value.payroll + 
+         expensesData.value.internet + 
+         expensesData.value.promosi + 
+         expensesData.value.transportasi + 
+         expensesData.value.admin + 
+         expensesData.value.otherExpenses;
 });
 
 const netProfit = computed(() => {
@@ -636,6 +681,45 @@ const exportExcel = async () => {
     const paymentSheet = XLSX.utils.aoa_to_sheet(paymentData);
     paymentSheet['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 15 }];
     XLSX.utils.book_append_sheet(workbook, paymentSheet, 'Metode Pembayaran');
+
+    // ============= SHEET 3: LABA RUGI =============
+    const profitLossData = [
+      ['LAPORAN LABA RUGI'],
+      [],
+      ['Periode:', reportPeriodText.value],
+      [],
+      ['PENDAPATAN', ''],
+      ['Penjualan Kotor', formatCurrencyRaw(grossRevenue.value)],
+      ['Diskon & Retur', formatCurrencyRaw(totalDiscount.value)],
+      ['Penjualan Bersih', formatCurrencyRaw(netRevenue.value)],
+      [],
+      ['BIAYA POKOK PENJUALAN (COGS)', ''],
+      ['Stok Awal', formatCurrencyRaw(cogsData.value.openingStock)],
+      ['Pembelian', formatCurrencyRaw(cogsData.value.purchases)],
+      ['Stok Akhir', formatCurrencyRaw(cogsData.value.closingStock)],
+      ['Total COGS', formatCurrencyRaw(calculatedCOGS.value)],
+      [],
+      ['Laba Kotor', formatCurrencyRaw(grossProfit.value)],
+      [],
+      ['BIAYA OPERASIONAL', ''],
+      ['Gaji Karyawan', formatCurrencyRaw(expensesData.value.payroll)],
+      ['Listrik & Air', formatCurrencyRaw(expensesData.value.utilities)],
+      ['Sewa', formatCurrencyRaw(expensesData.value.rent)],
+      ['Internet', formatCurrencyRaw(expensesData.value.internet)],
+      ['Promosi', formatCurrencyRaw(expensesData.value.promosi)],
+      ['Transportasi', formatCurrencyRaw(expensesData.value.transportasi)],
+      ['Admin', formatCurrencyRaw(expensesData.value.admin)],
+      ['Biaya Lain', formatCurrencyRaw(expensesData.value.otherExpenses)],
+      ['Total Biaya Operasional', formatCurrencyRaw(totalOperatingExpenses.value)],
+      [],
+      ['RINGKASAN KEUNTUNGAN', ''],
+      ['Laba Bersih', formatCurrencyRaw(netProfit.value)],
+      ['Margin Laba', profitMargin.value.toFixed(2) + '%'],
+    ];
+
+    const profitLossSheet = XLSX.utils.aoa_to_sheet(profitLossData);
+    profitLossSheet['!cols'] = [{ wch: 30 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(workbook, profitLossSheet, 'Laba Rugi');
 
     // ============= SHEET 3: PRODUK TERLARIS =============
     const productData: any[][] = [
