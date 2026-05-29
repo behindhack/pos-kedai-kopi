@@ -246,12 +246,17 @@ onIonViewWillEnter(() => {
     bc = new BroadcastChannel('pos-sales-updates');
     bc.onmessage = (event) => {
       if (event.data && (event.data.type === 'NEW_SALE' || event.data.type === 'STATUS_UPDATE')) {
-        loadOrders(); // reload when a new sale is broadcasted
+        loadOrders(false); // reload when a new sale is broadcasted (silent)
       }
     };
   } catch (e) {
     console.warn('BroadcastChannel not supported');
   }
+
+  // Polling every 10 seconds to sync across different devices/browsers
+  setInterval(() => {
+    loadOrders(false);
+  }, 10000);
 });
 
 onIonViewWillLeave(() => {
@@ -263,9 +268,9 @@ onIonViewWillLeave(() => {
   }
 });
 
-const loadOrders = async () => {
+const loadOrders = async (showLoading = true) => {
   try {
-    isLoading.value = true;
+    if (showLoading) isLoading.value = true;
     // Load fresh orders from sales store (from KASIR transactions)
     await sales.loadFromStorage();
     

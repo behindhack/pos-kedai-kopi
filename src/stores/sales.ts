@@ -135,7 +135,7 @@ export const useSalesStore = defineStore('sales', {
             paidAmount,
             change: paidAmount - this.total,
           },
-          status: 'COMPLETED',  // ✅ Transaction is complete after payment
+          status: 'PENDING',  // Match backend status
         };
         
         // Save the updated sale object with orderNumber and status back via API or update local array
