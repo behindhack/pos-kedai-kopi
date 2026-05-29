@@ -3,8 +3,11 @@ import type { Sale, ShopSettings } from '../types';
 export const printReceipt = (sale: Sale, shopSettings: ShopSettings) => {
   const { printSettings } = shopSettings;
   
-  // Create a new window for printing
-  const printWindow = window.open('', '_blank', 'width=800,height=600');
+  // Create a hidden iframe for printing to avoid popup blockers
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+  const printWindow = iframe.contentWindow;
   if (!printWindow) return;
 
   const formatCurrency = (val: number) =>
@@ -301,9 +304,6 @@ export const printReceipt = (sale: Sale, shopSettings: ShopSettings) => {
         <script>
           window.onload = function() {
             window.print();
-            setTimeout(function() {
-              window.close();
-            }, 500);
           };
         </script>
       </body>
@@ -312,4 +312,9 @@ export const printReceipt = (sale: Sale, shopSettings: ShopSettings) => {
 
   printWindow.document.write(receiptContent);
   printWindow.document.close();
+
+  // Remove the iframe after printing
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 1000); // Wait for the print dialog to open before removing
 };
