@@ -176,7 +176,7 @@
                 <ion-item class="form-item recipe-select-item" lines="none">
                   <ion-select v-model="item.materialId" placeholder="Pilih Bahan" interface="popover">
                     <ion-select-option v-for="rm in rawMaterialsStore.activeMaterials" :key="rm.id" :value="rm.id">
-                      {{ rm.name }} ({{ rm.unit }})
+                      {{ rm.name }} ({{ formatCurrency(rm.costPerUnit) }}/{{ rm.unit }})
                     </ion-select-option>
                   </ion-select>
                 </ion-item>
@@ -196,6 +196,30 @@
               <p v-if="form.recipe.length === 0" class="empty-recipe">
                 Tidak ada bahan baku. (Stok produk akan dipotong langsung saat terjual)
               </p>
+            </div>
+
+            <!-- Analisis Keuntungan -->
+            <div v-if="form.recipe.length > 0" class="profit-analysis-box">
+              <h4 style="margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 600; color: var(--ion-text-color);">Analisis Keuntungan per Item</h4>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: var(--app-muted);">Harga Jual:</span>
+                <strong>{{ formatCurrency(form.basePrice || 0) }}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--ion-color-danger);">
+                <span>Total Harga Pokok (HPP):</span>
+                <strong>- {{ formatCurrency(recipeTotalCost) }}</strong>
+              </div>
+              <div style="border-top: 1px dashed var(--ion-border-color); margin: 8px 0;"></div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--ion-color-success);">
+                <span>Estimasi Keuntungan:</span>
+                <strong>{{ formatCurrency(estimatedProfit) }}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--app-muted);">Margin Keuntungan:</span>
+                <strong :style="{ color: estimatedMargin > 0 ? 'var(--ion-color-success)' : 'var(--ion-color-danger)' }">
+                  {{ estimatedMargin.toFixed(1) }}%
+                </strong>
+              </div>
             </div>
 
             <!-- Info -->
@@ -277,6 +301,8 @@ const rawMaterialsStore = useRawMaterialsStore();
 const { isDark, toggleTheme } = useTheme();
 const selectedCategory = ref<'ALL' | Product['category']>('ALL');
 const showModal = ref(false);
+const isEditing = ref(false);
+const editingId = ref<string | null>(null);
 const showDeleteConfirm = ref(false);
 const editingProduct = ref<Product | null>(null);
 const productToDelete = ref<Product | null>(null);
@@ -286,9 +312,35 @@ const form = ref<{
   name: string;
   category: Product['category'] | '';
   basePrice: number;
-  image?: string;
-  recipe: RecipeItem[];
-}>({ name: '', category: '' as any, basePrice: 0, image: '', recipe: [] });
+  image: string;
+  recipe: { materialId: string; quantity: number }[];
+}>({
+  name: '',
+  category: '',
+  basePrice: 0,
+  image: '',
+  recipe: [],
+});
+
+// Profit Analysis Computeds
+const recipeTotalCost = computed(() => {
+  return form.value.recipe.reduce((total, item) => {
+    const rawMaterial = rawMaterialsStore.activeMaterials.find(rm => rm.id === item.materialId || rm.id === Number(item.materialId));
+    if (rawMaterial && item.quantity) {
+      return total + (Number(rawMaterial.costPerUnit) * Number(item.quantity));
+    }
+    return total;
+  }, 0);
+});
+
+const estimatedProfit = computed(() => {
+  return (form.value.basePrice || 0) - recipeTotalCost.value;
+});
+
+const estimatedMargin = computed(() => {
+  if (!form.value.basePrice || form.value.basePrice <= 0) return 0;
+  return (estimatedProfit.value / form.value.basePrice) * 100;
+});
 
 onMounted(() => {
   productStore.loadFromStorage();
@@ -785,6 +837,16 @@ const saveProduct = async () => {
   color: var(--app-muted);
   font-style: italic;
   margin-top: 8px;
+}
+
+/* Profit Analysis Box */
+.profit-analysis-box {
+  margin: 0 0 24px 0;
+  padding: 16px;
+  background: var(--app-input-bg);
+  border: 1.5px solid var(--ion-border-color);
+  border-radius: 14px;
+  font-size: 0.95rem;
 }
 
 /* Action Buttons - Modern */
