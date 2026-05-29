@@ -38,9 +38,10 @@ app.use('/api/financial-reports', financialRoutes);
 app.get('/api/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'OK', message: 'Backend is running, MySQL connected ✅', db: 'MySQL' });
-  } catch {
-    res.status(500).json({ status: 'ERROR', message: 'MySQL connection failed ❌' });
+    res.json({ status: 'OK', message: 'Backend is running, MySQL connected', db: 'MySQL' });
+  } catch (err: any) {
+    console.error('Health Check DB Error:', err);
+    res.status(500).json({ status: 'ERROR', message: 'MySQL connection failed', error: err?.message || String(err) });
   }
 });
 

@@ -16,8 +16,8 @@ function parseMysqlUrl(url: string) {
     user: decodeURIComponent(parsed.username) || 'root',
     password: decodeURIComponent(parsed.password) || '',
     database: parsed.pathname.slice(1).split('?')[0],
-    connectionLimit: 1,
-    ssl: !isLocal ? { rejectUnauthorized: true } : undefined,
+    connectionLimit: 5,
+    ssl: !isLocal ? { rejectUnauthorized: false } : undefined,
   };
 }
 
