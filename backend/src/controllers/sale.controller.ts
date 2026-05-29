@@ -83,83 +83,61 @@ export const createSale = async (req: Request, res: Response) => {
     const endOfDay = new Date(queryDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const countToday = await prisma.sale.count({
-      where: { date: { gte: startOfDay, lte: endOfDay } },
-    });
-
-    const newOrderNumber = (countToday + 1).toString().padStart(3, '0');
-
-    const paymentMethod = saleData.paymentMethod || saleData.payment?.method || 'CASH';
-    const paidAmount = saleData.paidAmount || saleData.payment?.paidAmount || saleData.total;
-    const changeAmount = paidAmount - saleData.total;
-
-    // Build items for Prisma nested create
-    const itemsData = saleData.items.map((item: any) => {
-      const selectedVariants = (item.selectedVariantIds || []).map((vId: string) => {
-        const variant = item.product.variants?.find((v: any) => v.id === vId || v.id === Number(vId));
-        return {
-          variantId: String(vId),
-          name: variant?.name || 'Unknown',
-          extraPrice: Number(variant?.extraPrice || 0),
-        };
+    const sale = await prisma.$transaction(async (tx) => {
+      const countToday = await tx.sale.count({
+        where: { date: { gte: startOfDay, lte: endOfDay } },
       });
 
-      return {
-        productId: Number(item.product.id),
-        productName: item.product.name,
-        productCategory: item.product.category || null,
-        basePrice: Number(item.product.basePrice),
-        qty: Number(item.qty),
-        note: item.note || null,
-        variants: { create: selectedVariants },
-      };
-    });
+      const newOrderNumber = (countToday + 1).toString().padStart(3, '0');
 
-    const sale = await prisma.sale.create({
-      data: {
-        orderNumber: newOrderNumber,
-        customerName: saleData.customerName || null,
-        orderType: saleData.orderType,
-        subtotal: Number(saleData.subtotal),
-        discount: Number(saleData.discount || 0),
-        tax: Number(saleData.tax || 0),
-        total: Number(saleData.total),
-        paymentMethod: paymentMethod,
-        paidAmount: Number(paidAmount),
-        changeAmount: Number(changeAmount),
-        date: queryDate,
-        status: 'PENDING',
-        items: { create: itemsData },
-      },
-      include: { items: { include: { variants: true } } },
-    });
-
-    // Deduct stock based on recipe or product stock
-    for (const item of saleData.items) {
-      const product = await prisma.product.findUnique({
-        where: { id: Number(item.product.id) },
-        include: { recipe: true },
+      const createdSale = await tx.sale.create({
+        data: {
+          orderNumber: newOrderNumber,
+          customerName: saleData.customerName || null,
+          orderType: saleData.orderType,
+          subtotal: Number(saleData.subtotal),
+          discount: Number(saleData.discount || 0),
+          tax: Number(saleData.tax || 0),
+          total: Number(saleData.total),
+          paymentMethod: paymentMethod,
+          paidAmount: Number(paidAmount),
+          changeAmount: Number(changeAmount),
+          date: queryDate,
+          status: 'PENDING',
+          items: { create: itemsData },
+        },
+        include: { items: { include: { variants: true } } },
       });
 
-      if (product) {
-        if (product.recipe && product.recipe.length > 0) {
-          // Deduct from raw materials based on recipe
-          for (const r of product.recipe) {
-            const amountToDeduct = Number(r.quantity) * Number(item.qty);
-            await prisma.rawMaterial.update({
-              where: { id: r.materialId },
-              data: { quantity: { decrement: amountToDeduct } },
+      // Deduct stock based on recipe or product stock
+      for (const item of saleData.items) {
+        const product = await tx.product.findUnique({
+          where: { id: Number(item.product.id) },
+          include: { recipe: true },
+        });
+
+        if (product) {
+          if (product.recipe && product.recipe.length > 0) {
+            // Deduct from raw materials based on recipe
+            for (const r of product.recipe) {
+              const amountToDeduct = Number(r.quantity) * Number(item.qty);
+              await tx.rawMaterial.update({
+                where: { id: r.materialId },
+                data: { quantity: { decrement: amountToDeduct } },
+              });
+            }
+          } else {
+            // Fallback: Deduct from product stock directly
+            await tx.product.update({
+              where: { id: Number(item.product.id) },
+              data: { stock: { decrement: Number(item.qty) } },
             });
           }
-        } else {
-          // Fallback: Deduct from product stock directly
-          await prisma.product.update({
-            where: { id: Number(item.product.id) },
-            data: { stock: { decrement: Number(item.qty) } },
-          });
         }
       }
-    }
+
+      return createdSale;
+    });
 
     res.status(201).json(sale);
   } catch (error) {
