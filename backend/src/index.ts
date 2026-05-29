@@ -45,22 +45,23 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
-// Start Server
-const startServer = async () => {
-  try {
-    await prisma.$connect();
-    console.log('✅ Connected to MySQL');
-    app.listen(Number(PORT), HOST, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-      console.log(`🌐 LAN access: http://192.168.100.116:${PORT}`);
-    });
-  } catch (error) {
-    console.error('❌ MySQL connection error:', error);
-    process.exit(1);
-  }
-};
-
-startServer();
+// Start Server (only if not in serverless environment)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const startServer = async () => {
+    try {
+      await prisma.$connect();
+      console.log('✅ Connected to MySQL');
+      app.listen(Number(PORT), HOST, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+        console.log(`🌐 LAN access: http://192.168.100.116:${PORT}`);
+      });
+    } catch (error) {
+      console.error('❌ MySQL connection error:', error);
+      process.exit(1);
+    }
+  };
+  startServer();
+}
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
