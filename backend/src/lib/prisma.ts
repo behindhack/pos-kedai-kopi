@@ -9,14 +9,13 @@ const globalForPrisma = globalThis as unknown as {
 // Ensure connection limit is 1 for serverless environments
 let dbUrl = process.env.DATABASE_URL;
 if (dbUrl && !dbUrl.includes('connection_limit')) {
-  dbUrl += (dbUrl.includes('?') ? '&' : '?') + 'connection_limit=1';
+  process.env.DATABASE_URL = dbUrl + (dbUrl.includes('?') ? '&' : '?') + 'connection_limit=1';
 }
 
 export const prisma: PrismaClient =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-    datasourceUrl: dbUrl,
   });
 
 if (process.env.NODE_ENV !== 'production') {
