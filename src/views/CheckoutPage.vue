@@ -278,8 +278,8 @@ const selectedPaymentMethod = ref<PaymentMethod>('CASH');
 const amountPaid = ref(0);
 const taxPercent = ref(shopStore.settings?.taxPercent || 0);
 
-const discountType = ref<'nominal' | 'percent'>('nominal');
-const discountValue = ref(0);
+const discountType = ref<'nominal' | 'percent'>('percent');
+const discountValue = ref(shopStore.settings?.defaultDiscount || 0);
 const discountAmount = computed(() => {
   if (discountType.value === 'percent') {
     return (sales.subtotal * (discountValue.value || 0)) / 100;
@@ -293,6 +293,10 @@ const lastSale = ref<Sale | null>(null);
 onMounted(() => {
   sales.loadFromStorage();
   shopStore.loadFromStorage();
+
+  // Apply default tax & discount
+  updateTax();
+  updateDiscount();
 
   // Redirect if cart is empty
   if (sales.currentCart.length === 0) {

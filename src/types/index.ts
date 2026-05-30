@@ -63,6 +63,7 @@ export interface ShopSettings {
   address?: string;
   phone?: string;
   taxPercent?: number;
+  defaultDiscount?: number;
   printSettings: {
     showLogo: boolean;
     showAddress: boolean;

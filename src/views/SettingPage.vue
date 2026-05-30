@@ -351,6 +351,8 @@ const shopSettings = reactive<ShopSettings>({
   shopLogo: '',
   address: '',
   phone: '',
+  taxPercent: 0,
+  defaultDiscount: 0,
   printSettings: {
     showLogo: true,
     showAddress: true,
@@ -400,6 +402,8 @@ onMounted(() => {
   shopSettings.address = shopStore.settings.address || '';
   shopSettings.phone = shopStore.settings.phone || '';
   shopSettings.printSettings = { ...shopStore.settings.printSettings };
+  tax.value = shopStore.settings.taxPercent || 0;
+  discount.value = shopStore.settings.defaultDiscount || 0;
 
   // Load staff if user is OWNER
   if (isOwner.value) {
@@ -553,6 +557,10 @@ const savePrintSettings = async () => {
 };
 
 const saveTaxDiscount = async () => {
+  shopStore.updateSettings({
+    taxPercent: tax.value,
+    defaultDiscount: discount.value,
+  });
   salesStore.taxPercent = tax.value;
 
   const toast = await toastController.create({
