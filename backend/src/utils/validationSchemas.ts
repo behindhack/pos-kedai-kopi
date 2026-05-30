@@ -34,16 +34,26 @@ export const updateProductSchema = Joi.object({
 
 // Sale Schemas
 export const createSaleSchema = Joi.object({
+  customerName: Joi.string().allow('', null).optional(),
+  orderType: Joi.string().valid('DINE_IN', 'TAKE_AWAY').required(),
   items: Joi.array().items(
     Joi.object({
-      productId: Joi.string().required(), // or Joi.number() depending on your DB ID type, wait UUID or Int? Prisma usually generates UUIDs as strings if MySQL or MongoDB. If it's an integer ID, maybe number is better. Prisma schema needs to be checked, but we'll use string as default generic since it can validate UUIDs. Let's use Joi.any().required() or check the schema later.
-      quantity: Joi.number().integer().min(1).required(),
-      price: Joi.number().min(0).required(),
-      name: Joi.string().required()
-    })
+      product: Joi.object({
+        id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+        name: Joi.string().required(),
+        category: Joi.string().allow('', null).optional(),
+        basePrice: Joi.number().min(0).required(),
+        variants: Joi.array().optional()
+      }).unknown(true).required(),
+      qty: Joi.number().integer().min(1).required(),
+      selectedVariantIds: Joi.array().items(Joi.string()).optional(),
+      note: Joi.string().allow('', null).optional()
+    }).unknown(true)
   ).min(1).required(),
-  totalAmount: Joi.number().min(0).required(),
-  paymentMethod: Joi.string().valid('CASH', 'DEBIT', 'QRIS', 'CREDIT').required(),
-  amountPaid: Joi.number().min(0).required(),
-  change: Joi.number().min(0).required()
+  subtotal: Joi.number().min(0).required(),
+  discount: Joi.number().min(0).required(),
+  tax: Joi.number().min(0).required(),
+  total: Joi.number().min(0).required(),
+  paymentMethod: Joi.string().valid('CASH', 'QRIS', 'TRANSFER').required(),
+  paidAmount: Joi.number().min(0).required()
 });
