@@ -4,7 +4,7 @@ import { Preferences } from '@capacitor/preferences';
 import type { UserRole, Product, Sale, ShopSettings, RawMaterial } from '../types';
 
 // Konfigurasi baseURL Axios (sesuaikan dengan URL backend Anda)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
