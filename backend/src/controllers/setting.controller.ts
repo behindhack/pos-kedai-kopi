@@ -19,7 +19,7 @@ export const getSettings = async (_req: Request, res: Response) => {
   try {
     let settings = await prisma.setting.findFirst();
     if (!settings) {
-      settings = await prisma.setting.create({ data: {} });
+      settings = await prisma.setting.create({ data: {} as any });
     }
     res.json(formatSettings(settings));
   } catch (error) {

@@ -18,7 +18,7 @@ export const prisma: PrismaClient =
       db: {
         url: prismaUrl,
       },
-    },
+    } as any,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
 
