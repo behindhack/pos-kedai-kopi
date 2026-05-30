@@ -167,6 +167,9 @@ export const createSale = async (req: Request, res: Response) => {
       }
 
       return finalSale;
+    }, {
+      maxWait: 15000, // 15 seconds max wait to connect to pool
+      timeout: 20000, // 20 seconds max execution time for transaction
     });
 
     res.status(201).json(sale);
