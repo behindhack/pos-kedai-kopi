@@ -20,7 +20,13 @@ export const getSettings = async (_req: Request, res: Response) => {
   try {
     let settings = await prisma.setting.findFirst();
     if (!settings) {
-      settings = await prisma.setting.create({ data: { shopLogo: '☕' } as any });
+      settings = await prisma.setting.create({ 
+        data: { 
+          shopLogo: '☕',
+          address: 'Alamat Kedai',
+          phone: '081234567890',
+        } as any 
+      });
     }
     res.json(formatSettings(settings));
   } catch (error) {
@@ -56,7 +62,14 @@ export const updateSettings = async (req: Request, res: Response) => {
         data: updateData,
       });
     } else {
-      settings = await prisma.setting.create({ data: updateData });
+      settings = await prisma.setting.create({ 
+        data: {
+          shopLogo: updateData.shopLogo || '☕',
+          address: updateData.address || 'Alamat Kedai',
+          phone: updateData.phone || '081234567890',
+          ...updateData
+        } 
+      });
     }
 
     res.json(formatSettings(settings));
