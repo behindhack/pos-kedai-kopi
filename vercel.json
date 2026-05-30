@@ -1,4 +1,5 @@
 {
+  "framework": "vite",
   "functions": {
     "api/**/*.ts": {
       "includeFiles": "backend/node_modules/.prisma/client/*.node"
