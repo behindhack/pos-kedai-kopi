@@ -84,11 +84,8 @@ export const createSale = async (req: Request, res: Response) => {
     endOfDay.setHours(23, 59, 59, 999);
 
     const sale = await prisma.$transaction(async (tx) => {
-      const countToday = await tx.sale.count({
-        where: { date: { gte: startOfDay, lte: endOfDay } },
-      });
-
-      const newOrderNumber = (countToday + 1).toString().padStart(3, '0');
+      const datePrefix = queryDate.toISOString().slice(0, 10).replace(/-/g, '');
+      const tempOrderNumber = `TEMP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
       const itemsData = saleData.items.map((item: any) => {
         return {
@@ -117,7 +114,7 @@ export const createSale = async (req: Request, res: Response) => {
 
       const createdSale = await tx.sale.create({
         data: {
-          orderNumber: newOrderNumber,
+          orderNumber: tempOrderNumber,
           customerName: saleData.customerName || null,
           orderType: saleData.orderType,
           subtotal: Number(saleData.subtotal),
@@ -131,6 +128,13 @@ export const createSale = async (req: Request, res: Response) => {
           status: 'PENDING',
           items: { create: itemsData },
         },
+      });
+
+      const finalOrderNumber = `INV-${datePrefix}-${createdSale.id.toString().padStart(5, '0')}`;
+
+      const finalSale = await tx.sale.update({
+        where: { id: createdSale.id },
+        data: { orderNumber: finalOrderNumber },
         include: { items: { include: { variants: true } } },
       });
 
@@ -161,7 +165,7 @@ export const createSale = async (req: Request, res: Response) => {
         }
       }
 
-      return createdSale;
+      return finalSale;
     });
 
     res.status(201).json(sale);

@@ -356,6 +356,7 @@ const updateTax = () => {
 };
 
 const processPayment = async () => {
+  if (isProcessing.value) return; // Guard clause to strictly prevent double submit
   const errors = validatePayment(sales.total, amountPaid.value, selectedPaymentMethod.value);
   
   if (errors.length > 0) {

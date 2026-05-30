@@ -1,5 +1,6 @@
 // src/services/api.ts
 import axios from 'axios';
+import { Preferences } from '@capacitor/preferences';
 import type { UserRole, Product, Sale, ShopSettings, RawMaterial } from '../types';
 
 // Konfigurasi baseURL Axios (sesuaikan dengan URL backend Anda)
@@ -13,8 +14,8 @@ const axiosInstance = axios.create({
 });
 
 // Axios Interceptor untuk otomatis menyematkan token JWT ke setiap request
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
+axiosInstance.interceptors.request.use(async (config) => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' });
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -26,12 +27,12 @@ axiosInstance.interceptors.request.use((config) => {
 // Axios Interceptor untuk handle error (khususnya 401 Unauthorized)
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response && error.response.status === 401) {
       // Jika token invalid/expired, paksa logout
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('current_user');
-      localStorage.removeItem('login_timestamp');
+      await Preferences.remove({ key: 'auth_token' });
+      await Preferences.remove({ key: 'current_user' });
+      await Preferences.remove({ key: 'login_timestamp' });
       window.location.href = '/auth/login';
     }
     return Promise.reject(error);
@@ -51,16 +52,17 @@ class APIClient {
   // AUTHENTICATION
   // ==========================================
   
-  setToken(token: string) {
-    localStorage.setItem('auth_token', token);
+  async setToken(token: string) {
+    await Preferences.set({ key: 'auth_token', value: token });
   }
 
-  clearToken() {
-    localStorage.removeItem('auth_token');
+  async clearToken() {
+    await Preferences.remove({ key: 'auth_token' });
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('auth_token');
+  async getToken(): Promise<string | null> {
+    const { value } = await Preferences.get({ key: 'auth_token' });
+    return value;
   }
   
   async checkSetupStatus() {
@@ -75,7 +77,7 @@ class APIClient {
   async login(email: string, password: string) {
     try {
       const response = await axiosInstance.post('/auth/login', { email, password });
-      this.setToken(response.data.token);
+      await this.setToken(response.data.token);
       return { data: response.data, error: null };
     } catch (error) {
       return handleApiError(error);
@@ -111,7 +113,7 @@ class APIClient {
 
   async getCurrentUser() {
     try {
-      const token = this.getToken();
+      const token = await this.getToken();
       if (!token) return { data: null, error: 'Tidak ada sesi login' };
       
       const response = await axiosInstance.get('/auth/me');

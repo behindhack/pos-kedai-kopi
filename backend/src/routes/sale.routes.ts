@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getSales, createSale, updateSaleStatus } from '../controllers/sale.controller.js';
 import { authenticate, requireRole } from '../middlewares/auth.middleware.js';
+import { validateRequest } from '../middlewares/validate.middleware.js';
+import { createSaleSchema } from '../utils/validationSchemas.js';
 
 const router = Router();
 
@@ -8,7 +10,7 @@ const router = Router();
 router.get('/', authenticate, getSales);
 
 // Cashiers and Owners can create sales
-router.post('/', authenticate, requireRole(['CASHIER', 'OWNER']), createSale);
+router.post('/', authenticate, requireRole(['CASHIER', 'OWNER']), validateRequest(createSaleSchema), createSale);
 
 // Barista, Cashier, Owner can update status (Barista marks PREPARING/READY, Cashier marks COMPLETED)
 router.put('/:id/status', authenticate, updateSaleStatus);

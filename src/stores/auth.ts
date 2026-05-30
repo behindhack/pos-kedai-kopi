@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { apiClient } from '../services/api';
+import { Preferences } from '@capacitor/preferences';
 
 import type { UserRole } from '../types';
 
@@ -27,15 +28,15 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    loadFromStorage() {
-      const token = localStorage.getItem('auth_token');
-      const loginTime = localStorage.getItem('login_timestamp');
+    async loadFromStorage() {
+      const { value: token } = await Preferences.get({ key: 'auth_token' });
+      const { value: loginTime } = await Preferences.get({ key: 'login_timestamp' });
       
       // Check session expiry (24 hours)
       if (loginTime) {
         const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
         if (Date.now() - parseInt(loginTime, 10) > SESSION_DURATION) {
-          this.logout();
+          await this.logout();
           return;
         }
       }
@@ -44,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = token;
         apiClient.setToken(token);
       }
-      const user = localStorage.getItem('current_user');
+      const { value: user } = await Preferences.get({ key: 'current_user' });
       if (user) {
         this.currentUser = JSON.parse(user);
       }
@@ -78,12 +79,12 @@ export const useAuthStore = defineStore('auth', {
         this.currentUser = result.data?.user ?? null;
 
         if (this.token) {
-          localStorage.setItem('auth_token', this.token);
+          await Preferences.set({ key: 'auth_token', value: this.token });
           apiClient.setToken(this.token);
         }
         if (this.currentUser) {
-          localStorage.setItem('current_user', JSON.stringify(this.currentUser));
-          localStorage.setItem('login_timestamp', Date.now().toString());
+          await Preferences.set({ key: 'current_user', value: JSON.stringify(this.currentUser) });
+          await Preferences.set({ key: 'login_timestamp', value: Date.now().toString() });
         }
 
         return { success: true };
@@ -118,12 +119,12 @@ export const useAuthStore = defineStore('auth', {
         this.currentUser = result.data?.user ?? null;
 
         if (this.token) {
-          localStorage.setItem('auth_token', this.token);
+          await Preferences.set({ key: 'auth_token', value: this.token });
           apiClient.setToken(this.token);
         }
         if (this.currentUser) {
-          localStorage.setItem('current_user', JSON.stringify(this.currentUser));
-          localStorage.setItem('login_timestamp', Date.now().toString());
+          await Preferences.set({ key: 'current_user', value: JSON.stringify(this.currentUser) });
+          await Preferences.set({ key: 'login_timestamp', value: Date.now().toString() });
         }
 
         return { success: true };
@@ -176,13 +177,13 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    logout() {
+    async logout() {
       this.currentUser = null;
       this.token = null;
       this.error = null;
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('current_user');
-      localStorage.removeItem('login_timestamp');
+      await Preferences.remove({ key: 'auth_token' });
+      await Preferences.remove({ key: 'current_user' });
+      await Preferences.remove({ key: 'login_timestamp' });
       apiClient.clearToken();
     },
 
@@ -190,10 +191,12 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
     },
 
-    setCurrentUser(user: User | null) {
+    async setCurrentUser(user: User | null) {
       this.currentUser = user;
       if (user) {
-        localStorage.setItem('current_user', JSON.stringify(user));
+        await Preferences.set({ key: 'current_user', value: JSON.stringify(user) });
+      } else {
+        await Preferences.remove({ key: 'current_user' });
       }
     },
   },
