@@ -75,6 +75,6 @@ export const updateSettings = async (req: Request, res: Response) => {
     res.json(formatSettings(settings));
   } catch (error) {
     console.error('Update settings error:', error);
-    res.status(400).json({ error: 'Bad request' });
+    res.status(400).json({ error: error instanceof Error ? error.message : 'Bad request' });
   }
 };

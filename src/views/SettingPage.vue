@@ -638,7 +638,37 @@ const triggerFileInput = () => {
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_SIZE = 400; // Resize logo to max 400px
+        
+        if (width > height && width > MAX_SIZE) {
+          height *= MAX_SIZE / width;
+          width = MAX_SIZE;
+        } else if (height > MAX_SIZE) {
+          width *= MAX_SIZE / height;
+          height = MAX_SIZE;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const quality = mimeType === 'image/png' ? undefined : 0.8;
+          resolve(canvas.toDataURL(mimeType, quality));
+        } else {
+          resolve(e.target?.result as string);
+        }
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target?.result as string;
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
