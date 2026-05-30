@@ -111,6 +111,7 @@ export const createSale = async (req: Request, res: Response) => {
       });
 
       const changeAmount = Number(saleData.paidAmount) - Number(saleData.total);
+      const dbPaymentMethod = saleData.paymentMethod === 'TRANSFER' ? 'DEBIT' : saleData.paymentMethod;
 
       const createdSale = await tx.sale.create({
         data: {
@@ -121,7 +122,7 @@ export const createSale = async (req: Request, res: Response) => {
           discount: Number(saleData.discount || 0),
           tax: Number(saleData.tax || 0),
           total: Number(saleData.total),
-          paymentMethod: saleData.paymentMethod,
+          paymentMethod: dbPaymentMethod,
           paidAmount: Number(saleData.paidAmount),
           changeAmount: changeAmount > 0 ? changeAmount : 0,
           date: queryDate,
@@ -171,7 +172,7 @@ export const createSale = async (req: Request, res: Response) => {
     res.status(201).json(sale);
   } catch (error: any) {
     console.error('Create sale error:', error);
-    res.status(400).json({ error: error.message || 'Bad request' });
+    res.status(500).json({ error: error.message || 'Server error during sale creation', stack: error.stack });
   }
 };
 
