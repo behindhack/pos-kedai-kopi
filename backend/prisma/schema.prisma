@@ -203,7 +203,7 @@ model FinancialReport {
 model Setting {
   id                Int      @id @default(autoincrement())
   name              String   @default("Kedai Kopi") @db.VarChar(255)
-  shopLogo          String   @default("☕") @map("shop_logo") @db.VarChar(10)
+  shopLogo          String   @map("shop_logo") @db.LongText
   address           String   @db.Text
   phone             String   @default("081234567890") @db.VarChar(50)
   receiptPrinterIp  String?  @map("receipt_printer_ip") @db.VarChar(100)
@@ -211,6 +211,7 @@ model Setting {
   printShowAddress  Boolean  @default(true) @map("print_show_address")
   printPaperWidth   Int      @default(80) @map("print_paper_width")
   taxPercent        Decimal  @default(0) @map("tax_percent") @db.Decimal(5, 2)
+  defaultDiscount   Decimal  @default(0) @map("default_discount") @db.Decimal(15, 2)
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 

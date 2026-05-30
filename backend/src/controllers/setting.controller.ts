@@ -13,13 +13,14 @@ const formatSettings = (s: any) => ({
     paperWidth: s.printPaperWidth,
   },
   taxPercent: Number(s.taxPercent),
+  defaultDiscount: Number(s.defaultDiscount),
 });
 
 export const getSettings = async (_req: Request, res: Response) => {
   try {
     let settings = await prisma.setting.findFirst();
     if (!settings) {
-      settings = await prisma.setting.create({ data: {} as any });
+      settings = await prisma.setting.create({ data: { shopLogo: '☕' } as any });
     }
     res.json(formatSettings(settings));
   } catch (error) {
@@ -39,6 +40,7 @@ export const updateSettings = async (req: Request, res: Response) => {
     if (body.phone !== undefined) updateData.phone = body.phone;
     if (body.receiptPrinterIp !== undefined) updateData.receiptPrinterIp = body.receiptPrinterIp;
     if (body.taxPercent !== undefined) updateData.taxPercent = Number(body.taxPercent);
+    if (body.defaultDiscount !== undefined) updateData.defaultDiscount = Number(body.defaultDiscount);
     if (body.printSettings) {
       if (body.printSettings.showLogo !== undefined) updateData.printShowLogo = body.printSettings.showLogo;
       if (body.printSettings.showAddress !== undefined) updateData.printShowAddress = body.printSettings.showAddress;
