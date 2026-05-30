@@ -260,7 +260,10 @@
         <ion-content class="ion-padding" v-if="lastSale">
           <div class="receipt-preview">
             <div class="receipt-header">
-              <div class="receipt-logo">{{ shopStore.settings.shopLogo }}</div>
+              <div class="receipt-logo" v-if="shopStore.settings.shopLogo">
+                <img v-if="shopStore.settings.shopLogo.startsWith('http') || shopStore.settings.shopLogo.startsWith('data:image')" :src="shopStore.settings.shopLogo" alt="Logo" style="max-height: 80px; max-width: 100%;" />
+                <span v-else>{{ shopStore.settings.shopLogo }}</span>
+              </div>
               <h2>{{ shopStore.settings.shopName }}</h2>
               <p v-if="shopStore.settings.address">{{ shopStore.settings.address }}</p>
               <p v-if="shopStore.settings.phone">{{ shopStore.settings.phone }}</p>

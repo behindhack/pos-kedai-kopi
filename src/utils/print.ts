@@ -187,8 +187,13 @@ export const printReceipt = (sale: Sale, shopSettings: ShopSettings) => {
           <div class="receipt-header">
   `;
 
-  if (printSettings.showLogo) {
-    receiptContent += `<div class="shop-logo">${shopSettings.shopLogo}</div>`;
+  if (printSettings.showLogo && shopSettings.shopLogo) {
+    const isImage = shopSettings.shopLogo.startsWith('http') || shopSettings.shopLogo.startsWith('data:image');
+    if (isImage) {
+      receiptContent += `<div class="shop-logo"><img src="${shopSettings.shopLogo}" style="max-width: 100%; max-height: 80px;" alt="Logo" /></div>`;
+    } else {
+      receiptContent += `<div class="shop-logo">${shopSettings.shopLogo}</div>`;
+    }
   }
 
   receiptContent += `
