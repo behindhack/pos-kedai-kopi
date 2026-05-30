@@ -21,6 +21,7 @@
   --ion-border-color: #efebe9;
   
   /* Panel & Card Colors */
+  --app-primary: var(--ion-color-primary);
   --app-panel: #ffffff;
   --app-panel-2: #f5f0eb; /* Soft milky cream */
   --app-panel-3: #fffbeb;
@@ -55,6 +56,7 @@ body.dark {
   --ion-border-color: #44403c;
   
   /* Dark Panels & Cards */
+  --app-primary: var(--ion-color-primary);
   --app-panel: #292524; /* Mocha Gray */
   --app-panel-2: #44403c;
   --app-panel-3: #292524;
