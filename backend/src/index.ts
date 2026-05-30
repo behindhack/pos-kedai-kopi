@@ -59,6 +59,58 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+// TEMPORARY: Debug endpoint to check which database is being used
+app.get('/api/debug-db', async (_req, res) => {
+  try {
+    const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+    // Only show database name, not credentials
+    const dbNameMatch = dbUrl.match(/\/([^?]+)\??/);
+    const dbName = dbNameMatch ? dbNameMatch[1] : 'unknown';
+    const result: any[] = await prisma.$queryRaw`SELECT DATABASE() as db_name`;
+    res.json({ 
+      envDbName: dbName, 
+      actualDbName: result[0]?.db_name,
+      message: 'Debug info for DATABASE_URL'
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// TEMPORARY: Migration endpoint to add missing columns to settings table
+app.get('/api/migrate-settings', async (_req, res) => {
+  try {
+    const results: string[] = [];
+    
+    // Check and add missing columns one by one
+    const columnsToAdd = [
+      { name: 'default_discount', sql: 'ALTER TABLE settings ADD COLUMN default_discount DECIMAL(15,2) NOT NULL DEFAULT 0' },
+      { name: 'tax_percent', sql: 'ALTER TABLE settings ADD COLUMN tax_percent DECIMAL(5,2) NOT NULL DEFAULT 0' },
+      { name: 'print_show_logo', sql: 'ALTER TABLE settings ADD COLUMN print_show_logo BOOLEAN NOT NULL DEFAULT true' },
+      { name: 'print_show_address', sql: 'ALTER TABLE settings ADD COLUMN print_show_address BOOLEAN NOT NULL DEFAULT true' },
+      { name: 'print_paper_width', sql: 'ALTER TABLE settings ADD COLUMN print_paper_width INT NOT NULL DEFAULT 80' },
+      { name: 'receipt_printer_ip', sql: 'ALTER TABLE settings ADD COLUMN receipt_printer_ip VARCHAR(100) NULL' },
+    ];
+
+    for (const col of columnsToAdd) {
+      try {
+        await prisma.$executeRawUnsafe(col.sql);
+        results.push(`✅ Added column: ${col.name}`);
+      } catch (e: any) {
+        if (e.message?.includes('Duplicate column') || e.message?.includes('already exists')) {
+          results.push(`⏭️ Column already exists: ${col.name}`);
+        } else {
+          results.push(`❌ Error adding ${col.name}: ${e.message}`);
+        }
+      }
+    }
+
+    res.json({ status: 'Migration completed', results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.use(errorHandler);
 
 // Start Server (only if not in serverless environment)
