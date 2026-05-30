@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { createPool } from 'mariadb';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
 const dbUrl = process.env.DATABASE_URL || '';
@@ -21,8 +20,7 @@ function parseMysqlUrl(url: string) {
   };
 }
 
-const pool = createPool(parseMysqlUrl(dbUrl));
-const adapter = new PrismaMariaDb(pool);
+const adapter = new PrismaMariaDb(parseMysqlUrl(dbUrl));
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
