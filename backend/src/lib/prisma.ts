@@ -1,34 +1,26 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
 const dbUrl = process.env.DATABASE_URL || '';
+const isLocal = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
 
-function parseMysqlUrl(url: string) {
-  if (!url) return {} as any;
-  const parsed = new URL(url);
-  const isLocal = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
-  return {
-    host: parsed.hostname || 'localhost',
-    port: parsed.port ? parseInt(parsed.port) : 3306,
-    user: decodeURIComponent(parsed.username) || 'root',
-    password: decodeURIComponent(parsed.password) || '',
-    database: parsed.pathname.slice(1).split('?')[0],
-    connectionLimit: 1,
-    connectTimeout: 30000,
-    acquireTimeout: 30000,
-    ssl: isLocal ? undefined : { rejectUnauthorized: true },
-  };
+// Append parameters to connection string to prevent Vercel zombies
+let prismaUrl = dbUrl;
+if (!isLocal && prismaUrl) {
+  const separator = prismaUrl.includes('?') ? '&' : '?';
+  prismaUrl = `${prismaUrl}${separator}connection_limit=1&connect_timeout=30`;
 }
-
-const adapter = new PrismaMariaDb(parseMysqlUrl(dbUrl));
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-export const prisma: PrismaClient =
-  globalForPrisma.prisma ??
+export const prisma =
+  globalForPrisma.prisma ||
   new PrismaClient({
-    adapter,
+    datasources: {
+      db: {
+        url: prismaUrl,
+      },
+    },
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
 
