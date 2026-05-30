@@ -6,14 +6,11 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   // Default to 500 if status code is not set
   const statusCode = err.statusCode || err.status || 500;
   
-  // Don't leak stack traces or raw db errors in production
   const response = {
     status: 'error',
-    message: statusCode === 500 && process.env.NODE_ENV === 'production' 
-      ? 'Internal Server Error' 
-      : (err.message || 'Something went wrong'),
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
-    errorDetail: process.env.NODE_ENV !== 'production' ? err : undefined
+    message: err.message || 'Something went wrong',
+    stack: err.stack,
+    errorDetail: err
   };
 
   res.status(statusCode).json(response);

@@ -65,10 +65,10 @@ export const getSales = async (req: Request, res: Response) => {
       createdAt: s.createdAt.toISOString(),
     }));
 
-    res.json(formatted);
-  } catch (error) {
+    res.status(200).json(formatted);
+  } catch (error: any) {
     console.error('Get sales error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: error.message || 'Server error', stack: error.stack });
   }
 };
 

@@ -38,9 +38,9 @@ export const login = async (req: Request, res: Response) => {
         role: user.role,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: error.message || 'Internal server error', stack: error.stack });
   }
 };
 
