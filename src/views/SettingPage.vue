@@ -391,10 +391,10 @@ const isFormValid = computed(() => {
   return staffForm.password.length >= 6;
 });
 
-onMounted(() => {
+onMounted(async () => {
   tax.value = salesStore.taxPercent;
   
-  shopStore.loadFromStorage();
+  await shopStore.loadFromStorage();
   
   // Copy shop settings from store
   shopSettings.shopName = shopStore.settings.shopName;

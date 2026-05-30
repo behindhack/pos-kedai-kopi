@@ -290,9 +290,13 @@ const isProcessing = ref(false);
 const showSuccessModal = ref(false);
 const lastSale = ref<Sale | null>(null);
 
-onMounted(() => {
+onMounted(async () => {
   sales.loadFromStorage();
-  shopStore.loadFromStorage();
+  await shopStore.loadFromStorage();
+
+  // Re-read from store after loading
+  taxPercent.value = shopStore.settings?.taxPercent || 0;
+  discountValue.value = shopStore.settings?.defaultDiscount || 0;
 
   // Apply default tax & discount
   updateTax();
