@@ -68,13 +68,13 @@
             <div 
               class="order-queue-card" 
               :class="`status-${order.status.toLowerCase()}`"
-              :aria-label="`Pesanan nomor ${order.id.slice(-4).toUpperCase()} untuk ${order.customerName}`"
+              :aria-label="`Pesanan nomor ${String(order.id).slice(-4).toUpperCase()} untuk ${order.customerName}`"
               role="article"
             >
               <!-- Order Header -->
               <div class="order-queue-header">
                 <div class="order-number">
-                  <span class="number">#{{ order.id.slice(-4).toUpperCase() }}</span>
+                  <span class="number">#{{ String(order.id).slice(-4).toUpperCase() }}</span>
                   <span class="time">{{ formatTime(order.createdAt) }}</span>
                 </div>
                 <div :class="['status-badge', order.status.toLowerCase()]">
@@ -362,7 +362,7 @@ const completeOrder = async (orderId: string) => {
   if (index > -1) {
     const order = orders.value[index];
     order.status = 'COMPLETED';
-    toastMessage.value = `Pesanan #${order.id.slice(-4).toUpperCase()} selesai!`;
+    toastMessage.value = `Pesanan #${String(order.id).slice(-4).toUpperCase()} selesai!`;
     showToast.value = true;
     
     // Call the API to mark it completed

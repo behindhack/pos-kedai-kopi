@@ -31,7 +31,7 @@ export const getSales = async (req: Request, res: Response) => {
     });
 
     const formatted = sales.map((s) => ({
-      id: s.id,
+      id: s.id.toString(),
       orderNumber: s.orderNumber,
       customerName: s.customerName,
       orderType: s.orderType,
