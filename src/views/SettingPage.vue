@@ -394,7 +394,9 @@ const isFormValid = computed(() => {
 onMounted(async () => {
   tax.value = salesStore.taxPercent;
   
+  console.log("Loading settings from storage...");
   await shopStore.loadFromStorage();
+  console.log("Loaded settings:", shopStore.settings);
   
   // Copy shop settings from store
   shopSettings.shopName = shopStore.settings.shopName;
@@ -528,48 +530,91 @@ const deleteStaff = async (staffId: string) => {
 };
 
 const saveShopSettings = async () => {
-  shopStore.updateSettings({
-    shopName: shopSettings.shopName,
-    shopLogo: shopSettings.shopLogo,
-    address: shopSettings.address,
-    phone: shopSettings.phone,
-  });
+  try {
+    await shopStore.updateSettings({
+      shopName: shopSettings.shopName,
+      shopLogo: shopSettings.shopLogo,
+      address: shopSettings.address,
+      phone: shopSettings.phone,
+    });
+    
+    if (shopStore.error) {
+      throw new Error(shopStore.error);
+    }
 
-  const toast = await toastController.create({
-    message: 'Pengaturan kedai disimpan',
-    duration: 1500,
-    position: 'top',
-  });
-
-  await toast.present();
+    const toast = await toastController.create({
+      message: 'Pengaturan kedai disimpan ke database',
+      duration: 1500,
+      position: 'top',
+      color: 'success'
+    });
+    await toast.present();
+  } catch (err: any) {
+    const toast = await toastController.create({
+      message: 'Gagal menyimpan: ' + (err.message || 'Network Error'),
+      duration: 3000,
+      position: 'top',
+      color: 'danger'
+    });
+    await toast.present();
+  }
 };
 
 const savePrintSettings = async () => {
-  shopStore.updatePrintSettings(shopSettings.printSettings);
+  try {
+    await shopStore.updatePrintSettings(shopSettings.printSettings);
+    
+    if (shopStore.error) {
+      throw new Error(shopStore.error);
+    }
 
-  const toast = await toastController.create({
-    message: 'Pengaturan struk disimpan',
-    duration: 1500,
-    position: 'top',
-  });
-
-  await toast.present();
+    const toast = await toastController.create({
+      message: 'Pengaturan struk disimpan ke database',
+      duration: 1500,
+      position: 'top',
+      color: 'success'
+    });
+    await toast.present();
+  } catch (err: any) {
+    const toast = await toastController.create({
+      message: 'Gagal menyimpan: ' + (err.message || 'Network Error'),
+      duration: 3000,
+      position: 'top',
+      color: 'danger'
+    });
+    await toast.present();
+  }
 };
 
 const saveTaxDiscount = async () => {
-  shopStore.updateSettings({
-    taxPercent: tax.value,
-    defaultDiscount: discount.value,
-  });
-  salesStore.taxPercent = tax.value;
+  try {
+    await shopStore.updateSettings({
+      taxPercent: tax.value,
+      defaultDiscount: discount.value,
+    });
+    
+    if (shopStore.error) {
+      throw new Error(shopStore.error);
+    }
 
-  const toast = await toastController.create({
-    message: 'Setting disimpan',
-    duration: 1500,
-    position: 'top',
-  });
+    salesStore.taxPercent = tax.value;
 
-  await toast.present();
+    const toast = await toastController.create({
+      message: 'Setting pajak & diskon disimpan ke database',
+      duration: 1500,
+      position: 'top',
+      color: 'success'
+    });
+    await toast.present();
+  } catch (err: any) {
+    const toast = await toastController.create({
+      message: 'Gagal menyimpan: ' + (err.message || 'Network Error'),
+      duration: 3000,
+      position: 'top',
+      color: 'danger'
+    });
+    await toast.present();
+  }
 };
 
 // Logo upload methods

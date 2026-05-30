@@ -38,24 +38,29 @@ export const useShopStore = defineStore('shop', {
 
     async saveToStorage() {
       this.isLoading = true;
+      this.error = null;
       try {
-        await apiClient.updateSettings(this.settings);
-      } catch (e) {
+        const res = await apiClient.updateSettings(this.settings);
+        if (res.error) {
+          this.error = res.error;
+        }
+      } catch (e: any) {
+        this.error = e.message || 'Gagal menyimpan pengaturan';
         console.error('Failed to save shop settings:', e);
       } finally {
         this.isLoading = false;
       }
     },
 
-    updateSettings(newSettings: Partial<ShopSettings>) {
+    async updateSettings(newSettings: Partial<ShopSettings>) {
       this.settings = {
         ...this.settings,
         ...newSettings,
       };
-      this.saveToStorage();
+      await this.saveToStorage();
     },
 
-    updatePrintSettings(newPrintSettings: Partial<ShopSettings['printSettings']>) {
+    async updatePrintSettings(newPrintSettings: Partial<ShopSettings['printSettings']>) {
       this.settings.printSettings = {
         ...this.settings.printSettings,
         ...newPrintSettings,
