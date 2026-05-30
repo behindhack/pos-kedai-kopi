@@ -12,7 +12,8 @@ function parseMysqlUrl(url: string) {
     password: decodeURIComponent(parsed.password) || '',
     database: parsed.pathname.slice(1).split('?')[0],
     connectionLimit: 1, // Fix: Avoid pool timeout with scale-to-zero serverless DBs
-    connectTimeout: 20000, // Fix: Give TiDB time to wake up
+    connectTimeout: 30000, // Fix: Give TiDB time to wake up
+    acquireTimeout: 30000, // Fix: Give TiDB time to wake up when acquiring from pool
     ssl: isLocal ? undefined : { rejectUnauthorized: true },
   };
 }
