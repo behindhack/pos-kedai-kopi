@@ -195,7 +195,6 @@ import {
   IonIcon,
   IonToast,
   IonSpinner,
-  IonSpinner,
   onIonViewWillEnter,
   onIonViewWillLeave
 } from '@ionic/vue';
