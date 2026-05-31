@@ -82,11 +82,16 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+const gracefulShutdown = async (signal: string) => {
+  console.log(`\n🔌 Received ${signal}. Disconnecting from MySQL...`);
   await prisma.$disconnect();
   console.log('🔌 Disconnected from MySQL');
   process.exit(0);
-});
+};
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // For nodemon restarts
 
 // Export the Express API for Vercel
 export default app;
