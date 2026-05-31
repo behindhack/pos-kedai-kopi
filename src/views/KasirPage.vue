@@ -524,7 +524,7 @@ const selectedProductForVariant = ref<Product | null>(null);
 const selectedVariantId = ref<string>('');
 
 const unpaidOrders = computed(() => {
-  return sales.dailySales.filter(s => s.paymentStatus === 'UNPAID' && s.status !== 'COMPLETED');
+  return sales.dailySales.filter(s => s.paymentStatus === 'UNPAID');
 });
 
 const unpaidCount = computed(() => unpaidOrders.value.length);
