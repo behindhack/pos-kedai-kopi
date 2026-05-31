@@ -156,25 +156,39 @@
                 </div>
               </div>
 
-              <div class="cart-actions" v-if="sales.currentCart.length">
+              <div class="cart-actions">
+                <template v-if="sales.currentCart.length">
+                  <ion-button
+                    expand="block"
+                    color="warning"
+                    class="checkout-btn ion-margin-bottom"
+                    @click="processPayLater"
+                    :disabled="isProcessing"
+                  >
+                    <ion-spinner name="crescent" v-if="isProcessing" slot="start"></ion-spinner>
+                    Bayar Nanti (Open Bill)
+                  </ion-button>
+                  <ion-button
+                    expand="block"
+                    color="primary"
+                    class="checkout-btn"
+                    @click="openPayment"
+                    :disabled="isProcessing"
+                  >
+                    Bayar Sekarang
+                  </ion-button>
+                </template>
+                
                 <ion-button
+                  v-if="unpaidCount > 0"
                   expand="block"
-                  color="warning"
-                  class="checkout-btn ion-margin-bottom"
-                  @click="processPayLater"
-                  :disabled="isProcessing"
-                >
-                  <ion-spinner name="crescent" v-if="isProcessing" slot="start"></ion-spinner>
-                  Bayar Nanti (Open Bill)
-                </ion-button>
-                <ion-button
-                  expand="block"
-                  color="primary"
+                  color="danger"
                   class="checkout-btn"
-                  @click="openPayment"
-                  :disabled="isProcessing"
+                  :class="{ 'ion-margin-top': sales.currentCart.length > 0 }"
+                  @click="openUnpaidModal"
                 >
-                  Bayar Sekarang
+                  <ion-icon :icon="walletOutline" slot="start"></ion-icon>
+                  {{ unpaidCount }} Tagihan Belum Lunas
                 </ion-button>
               </div>
             </div>
