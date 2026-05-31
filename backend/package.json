@@ -8,8 +8,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "postinstall": "prisma generate && prisma migrate deploy",
-    "migrate": "prisma migrate deploy",
+    "postinstall": "prisma generate && prisma db push --accept-data-loss",
+    "migrate": "prisma db push --accept-data-loss",
     "lint": "eslint src/**/*.ts"
   },
   "keywords": [],
