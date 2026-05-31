@@ -215,7 +215,17 @@ export const useSalesStore = defineStore('sales', {
         
         // Refresh list to ensure everything is up to date
         this.loadSalesReport();
-        return { success: true, sale: result.data?.sale };
+        
+        let saleData = result.data?.sale;
+        if (saleData && !saleData.payment) {
+          saleData.payment = {
+            method: saleData.paymentMethod,
+            paidAmount: Number(saleData.paidAmount),
+            change: Number(saleData.changeAmount || 0),
+          };
+        }
+        
+        return { success: true, sale: saleData };
       } catch (error: any) {
         console.error('Failed to pay unpaid sale', error);
         return { success: false, error: error.message };
