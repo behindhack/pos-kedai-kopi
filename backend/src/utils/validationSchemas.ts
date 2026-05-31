@@ -15,22 +15,32 @@ export const loginSchema = Joi.object({
 
 // Product Schemas
 export const createProductSchema = Joi.object({
+  id: Joi.string().optional(),
   name: Joi.string().min(2).max(100).required(),
   category: Joi.string().required(),
-  price: Joi.number().min(0).required(),
-  stock: Joi.number().integer().min(0).required(),
-  image: Joi.string().uri().allow(null, '').optional(),
-  isAvailable: Joi.boolean().optional()
-});
+  basePrice: Joi.number().min(0).required(),
+  stock: Joi.number().integer().min(0).optional(),
+  image: Joi.string().allow(null, '').optional(),
+  isActive: Joi.boolean().optional(),
+  recipe: Joi.array().items(Joi.object({
+    materialId: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+    quantity: Joi.number().required()
+  })).optional()
+}).unknown(true);
 
 export const updateProductSchema = Joi.object({
+  id: Joi.string().optional(),
   name: Joi.string().min(2).max(100).optional(),
   category: Joi.string().optional(),
-  price: Joi.number().min(0).optional(),
+  basePrice: Joi.number().min(0).optional(),
   stock: Joi.number().integer().min(0).optional(),
-  image: Joi.string().uri().allow(null, '').optional(),
-  isAvailable: Joi.boolean().optional()
-}).min(1); // At least one field must be updated
+  image: Joi.string().allow(null, '').optional(),
+  isActive: Joi.boolean().optional(),
+  recipe: Joi.array().items(Joi.object({
+    materialId: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+    quantity: Joi.number().required()
+  })).optional()
+}).unknown(true);
 
 // Sale Schemas
 export const createSaleSchema = Joi.object({
