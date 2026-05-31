@@ -180,9 +180,8 @@
                 </template>
                 
                 <ion-button
-                  v-if="unpaidCount > 0"
                   expand="block"
-                  color="danger"
+                  :color="unpaidCount > 0 ? 'danger' : 'medium'"
                   class="checkout-btn"
                   :class="{ 'ion-margin-top': sales.currentCart.length > 0 }"
                   @click="openUnpaidModal"
