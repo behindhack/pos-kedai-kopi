@@ -156,14 +156,27 @@
                 </div>
               </div>
 
-              <ion-button
-                expand="block"
-                class="checkout-btn"
-                :disabled="!sales.currentCart.length"
-                @click="openPayment"
-              >
-                Bayar Sekarang
-              </ion-button>
+              <div class="cart-actions" v-if="sales.currentCart.length">
+                <ion-button
+                  expand="block"
+                  color="warning"
+                  class="checkout-btn ion-margin-bottom"
+                  @click="processPayLater"
+                  :disabled="isProcessing"
+                >
+                  <ion-spinner name="crescent" v-if="isProcessing" slot="start"></ion-spinner>
+                  Bayar Nanti (Open Bill)
+                </ion-button>
+                <ion-button
+                  expand="block"
+                  color="primary"
+                  class="checkout-btn"
+                  @click="openPayment"
+                  :disabled="isProcessing"
+                >
+                  Bayar Sekarang
+                </ion-button>
+              </div>
             </div>
           </ion-col>
         </ion-row>
@@ -414,6 +427,8 @@ const unpaidCount = computed(() => {
   return sales.dailySales.filter(s => s.paymentStatus === 'UNPAID' && s.status !== 'COMPLETED').length;
 });
 
+const isProcessing = ref(false);
+
 onMounted(() => {
   productStore.loadFromStorage();
   sales.loadFromStorage();
@@ -506,6 +521,38 @@ const decQty = (index: number) => {
 
 const openPayment = () => {
   router.push('/checkout');
+};
+
+const processPayLater = async () => {
+  if (isProcessing.value) return;
+  isProcessing.value = true;
+  
+  const toast = await toastController.create({
+    duration: 2000,
+    position: 'top',
+  });
+
+  try {
+    // Process open bill
+    const result = await sales.finalizeSale('PAY_LATER', 0);
+    
+    if (result.success && result.sale) {
+      toast.message = `Pesanan masuk dapur (Belum Bayar). Tagihan: ${formatCurrency(result.sale.total)}`;
+      toast.color = 'success';
+      // Cart is cleared automatically by finalizeSale
+    } else {
+      toast.message = result.error || 'Gagal memproses pesanan';
+      toast.color = 'danger';
+    }
+    await toast.present();
+  } catch (error: any) {
+    console.error('Pay later error:', error);
+    toast.message = 'Terjadi kesalahan sistem';
+    toast.color = 'danger';
+    await toast.present();
+  } finally {
+    isProcessing.value = false;
+  }
 };
 
 const closePayment = () => {

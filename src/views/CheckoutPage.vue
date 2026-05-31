@@ -174,23 +174,13 @@
                 <ion-button
                   expand="block"
                   color="primary"
-                  @click="processPayment(false)"
+                  @click="processPayment()"
                   :disabled="isProcessing || !canProcessPayment"
                 >
                   <ion-spinner name="crescent" v-if="isProcessing" slot="start"></ion-spinner>
-                  {{ isProcessing ? 'Memproses...' : 'Bayar Sekarang' }}
+                  {{ isProcessing ? 'Memproses...' : 'Proses Pembayaran' }}
                 </ion-button>
               </div>
-              <ion-button
-                expand="block"
-                color="warning"
-                class="pay-later-btn ion-margin-top"
-                @click="processPayment(true)"
-                :disabled="isProcessing"
-              >
-                <ion-icon slot="start" :icon="timeOutline"></ion-icon>
-                Bayar Nanti (Open Bill)
-              </ion-button>
             </div>
           </ion-col>
         </ion-row>
@@ -375,11 +365,11 @@ const updateTax = () => {
   sales.taxPercent = taxPercent.value || 0;
 };
 
-const processPayment = async (isPayLater: boolean = false) => {
+const processPayment = async () => {
   if (isProcessing.value) return; // Guard clause to strictly prevent double submit
   
-  const finalPaymentMethod = isPayLater ? 'PAY_LATER' : selectedPaymentMethod.value;
-  const finalAmountPaid = isPayLater ? 0 : amountPaid.value;
+  const finalPaymentMethod = selectedPaymentMethod.value;
+  const finalAmountPaid = amountPaid.value;
 
   const errors = validatePayment(sales.total, finalAmountPaid, finalPaymentMethod);
   
@@ -618,10 +608,6 @@ const handlePrintReceipt = () => {
 
 .action-buttons ion-button {
   flex: 1;
-}
-
-.pay-later-btn {
-  margin-top: 12px;
 }
 
 .success-icon {
