@@ -54,6 +54,6 @@ export const createSaleSchema = Joi.object({
   discount: Joi.number().min(0).required(),
   tax: Joi.number().min(0).required(),
   total: Joi.number().min(0).required(),
-  paymentMethod: Joi.string().valid('CASH', 'QRIS', 'TRANSFER').required(),
+  paymentMethod: Joi.string().valid('CASH', 'QRIS', 'TRANSFER', 'PAY_LATER').required(),
   paidAmount: Joi.number().min(0).required()
 });
