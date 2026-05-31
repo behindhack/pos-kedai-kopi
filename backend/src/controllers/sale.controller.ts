@@ -251,7 +251,44 @@ export const paySale = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    res.json(updatedSale);
+    const formatted = {
+      id: updatedSale.id.toString(),
+      orderNumber: updatedSale.orderNumber,
+      customerName: updatedSale.customerName,
+      cashierName: updatedSale.user?.name || undefined,
+      orderType: updatedSale.orderType,
+      items: updatedSale.items.map((item) => ({
+        product: {
+          id: item.productId,
+          name: item.productName,
+          category: item.productCategory,
+          basePrice: Number(item.basePrice),
+          variants: item.variants.map((v) => ({
+            id: v.variantId,
+            name: v.name,
+            extraPrice: Number(v.extraPrice),
+          })),
+        },
+        qty: item.qty,
+        selectedVariantIds: item.variants.map((v) => v.variantId),
+        note: item.note,
+      })),
+      subtotal: Number(updatedSale.subtotal),
+      discount: Number(updatedSale.discount),
+      tax: Number(updatedSale.tax),
+      total: Number(updatedSale.total),
+      payment: {
+        method: updatedSale.paymentMethod,
+        paidAmount: Number(updatedSale.paidAmount),
+        change: Number(updatedSale.changeAmount),
+      },
+      paymentStatus: updatedSale.paymentStatus,
+      status: updatedSale.status,
+      date: updatedSale.date.toISOString(),
+      createdAt: updatedSale.createdAt.toISOString(),
+    };
+
+    res.json(formatted);
   } catch (error: any) {
     console.error('Pay sale error:', error);
     res.status(500).json({ error: error.message || 'Server error', stack: error.stack });
