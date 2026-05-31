@@ -12,8 +12,14 @@
           </div>
 
           <div class="toolbar-actions">
-          <ion-button fill="clear" class="theme-btn" @click="toggleTheme" aria-label="Toggle dark mode">
-            <ion-icon :icon="isDark ? sunnyOutline : moonOutline" slot="icon-only"></ion-icon>
+            <!-- Unpaid Orders Shortcut -->
+            <ion-button fill="clear" color="danger" class="unpaid-btn" v-if="unpaidCount > 0" router-link="/tabs/pesanan" title="Ada tagihan belum lunas">
+              <ion-icon :icon="walletOutline" slot="start"></ion-icon>
+              {{ unpaidCount }} Belum Lunas
+            </ion-button>
+
+            <ion-button fill="clear" class="theme-btn" @click="toggleTheme" aria-label="Toggle dark mode">
+              <ion-icon :icon="isDark ? sunnyOutline : moonOutline" slot="icon-only"></ion-icon>
             </ion-button>
           </div>
         </div>
@@ -371,7 +377,7 @@ import {
   IonIcon,
   toastController,
 } from '@ionic/vue';
-import { sunnyOutline, moonOutline, printOutline } from 'ionicons/icons';
+import { sunnyOutline, moonOutline, printOutline, walletOutline } from 'ionicons/icons';
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProductStore } from '../stores/products';
@@ -403,6 +409,10 @@ const lastSale = ref<Sale | null>(null);
 const showVariantModal = ref(false);
 const selectedProductForVariant = ref<Product | null>(null);
 const selectedVariantId = ref<string>('');
+
+const unpaidCount = computed(() => {
+  return sales.dailySales.filter(s => s.paymentStatus === 'UNPAID' && s.status !== 'COMPLETED').length;
+});
 
 onMounted(() => {
   productStore.loadFromStorage();
@@ -584,6 +594,20 @@ const handlePrint = () => {
   margin: 2px 0 0;
   font-size: 12px;
   color: var(--app-muted);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unpaid-btn {
+  font-weight: 700;
+  background: var(--app-danger-light, rgba(239, 68, 68, 0.1));
+  border-radius: 20px;
+  --padding-start: 12px;
+  --padding-end: 12px;
 }
 
 .theme-btn {

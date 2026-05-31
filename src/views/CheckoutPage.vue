@@ -125,9 +125,6 @@
                   <ion-segment-button value="TRANSFER">
                     <ion-label>Transfer</ion-label>
                   </ion-segment-button>
-                  <ion-segment-button value="PAY_LATER">
-                    <ion-label>Nanti</ion-label>
-                  </ion-segment-button>
                 </ion-segment>
 
                 <!-- Cash Payment -->
@@ -154,14 +151,11 @@
                   </div>
                 </div>
 
-                <!-- QRIS/Transfer/Pay Later Info -->
+                <!-- QRIS/Transfer Info -->
                 <div v-else class="payment-info">
                   <ion-note>
                     <p v-if="selectedPaymentMethod === 'QRIS'">
                       Tunjukkan kode QRIS Anda untuk pembayaran
-                    </p>
-                    <p v-else-if="selectedPaymentMethod === 'PAY_LATER'">
-                      Tagihan akan disimpan. Pesanan langsung masuk dapur.
                     </p>
                     <p v-else>
                       Total transfer: <strong>{{ formatCurrency(sales.total) }}</strong>
@@ -172,18 +166,30 @@
             </ion-card>
 
             <!-- Action Buttons -->
-            <div class="action-buttons">
-              <ion-button expand="block" fill="outline" href="/tabs/kasir">
-                Batal
-              </ion-button>
+            <div class="action-buttons-container">
+              <div class="action-buttons">
+                <ion-button expand="block" fill="outline" href="/tabs/kasir">
+                  Batal
+                </ion-button>
+                <ion-button
+                  expand="block"
+                  color="primary"
+                  @click="processPayment(false)"
+                  :disabled="isProcessing || !canProcessPayment"
+                >
+                  <ion-spinner name="crescent" v-if="isProcessing" slot="start"></ion-spinner>
+                  {{ isProcessing ? 'Memproses...' : 'Bayar Sekarang' }}
+                </ion-button>
+              </div>
               <ion-button
                 expand="block"
-                color="primary"
-                @click="processPayment"
-                :disabled="isProcessing || !canProcessPayment"
+                color="warning"
+                class="pay-later-btn ion-margin-top"
+                @click="processPayment(true)"
+                :disabled="isProcessing"
               >
-                <ion-spinner name="crescent" v-if="isProcessing" slot="start"></ion-spinner>
-                {{ isProcessing ? 'Memproses...' : 'Proses Pembayaran' }}
+                <ion-icon slot="start" :icon="timeOutline"></ion-icon>
+                Bayar Nanti (Open Bill)
               </ion-button>
             </div>
           </ion-col>
@@ -266,7 +272,7 @@ import {
   IonNote,
   toastController,
 } from '@ionic/vue';
-import { printOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { printOutline, checkmarkCircleOutline, timeOutline } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSalesStore } from '../stores/sales';
@@ -369,9 +375,13 @@ const updateTax = () => {
   sales.taxPercent = taxPercent.value || 0;
 };
 
-const processPayment = async () => {
+const processPayment = async (isPayLater: boolean = false) => {
   if (isProcessing.value) return; // Guard clause to strictly prevent double submit
-  const errors = validatePayment(sales.total, amountPaid.value, selectedPaymentMethod.value);
+  
+  const finalPaymentMethod = isPayLater ? 'PAY_LATER' : selectedPaymentMethod.value;
+  const finalAmountPaid = isPayLater ? 0 : amountPaid.value;
+
+  const errors = validatePayment(sales.total, finalAmountPaid, finalPaymentMethod);
   
   if (errors.length > 0) {
     const toast = await toastController.create({
@@ -387,8 +397,7 @@ const processPayment = async () => {
   isProcessing.value = true;
 
   try {
-    const finalAmountPaid = selectedPaymentMethod.value === 'PAY_LATER' ? 0 : amountPaid.value;
-    const result = await sales.finalizeSale(selectedPaymentMethod.value, finalAmountPaid);
+    const result = await sales.finalizeSale(finalPaymentMethod, finalAmountPaid);
 
     if (result.success && result.sale) {
       lastSale.value = result.sale;
@@ -598,14 +607,21 @@ const handlePrintReceipt = () => {
   border-radius: 12px;
 }
 
+.action-buttons-container {
+  margin-top: 24px;
+}
+
 .action-buttons {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
 }
 
 .action-buttons ion-button {
   flex: 1;
+}
+
+.pay-later-btn {
+  margin-top: 12px;
 }
 
 .success-icon {
