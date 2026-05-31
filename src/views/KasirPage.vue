@@ -305,57 +305,57 @@
               <div class="receipt-section">
                 <div class="receipt-row">
                   <span>Tanggal:</span>
-                  <span>{{ new Date(lastSale.date).toLocaleString('id-ID') }}</span>
+                  <span>{{ lastSale?.date ? new Date(lastSale.date).toLocaleString('id-ID') : '-' }}</span>
                 </div>
                 <div class="receipt-row">
                   <span>Tipe Pesanan:</span>
-                  <span>{{ lastSale.orderType === 'DINE_IN' ? 'Makan di Tempat' : 'Take Away' }}</span>
+                  <span>{{ lastSale?.orderType === 'DINE_IN' ? 'Makan di Tempat' : 'Take Away' }}</span>
                 </div>
-                <div v-if="lastSale.customerName" class="receipt-row">
+                <div v-if="lastSale?.customerName" class="receipt-row">
                   <span>Pelanggan:</span>
-                  <span>{{ lastSale.customerName }}</span>
+                  <span>{{ lastSale?.customerName }}</span>
                 </div>
               </div>
 
               <div class="receipt-section">
                 <div class="section-title">ITEM PESANAN</div>
-                <div v-for="(item, i) in lastSale.items" :key="i" class="receipt-row">
-                  <span>{{ item.product.name }} x{{ item.qty }}</span>
-                  <span>{{ formatCurrency((item.product.basePrice) * item.qty) }}</span>
+                <div v-for="(item, i) in (lastSale?.items || [])" :key="i" class="receipt-row">
+                  <span>{{ item?.product?.name || 'Item' }} x{{ item?.qty || 1 }}</span>
+                  <span>{{ formatCurrency((item?.product?.basePrice || 0) * (item?.qty || 1)) }}</span>
                 </div>
               </div>
 
               <div class="receipt-section">
                 <div class="receipt-row">
                   <span>Subtotal:</span>
-                  <span>{{ formatCurrency(lastSale.subtotal) }}</span>
+                  <span>{{ formatCurrency(lastSale?.subtotal || 0) }}</span>
                 </div>
-                <div v-if="lastSale.discount > 0" class="receipt-row">
+                <div v-if="(lastSale?.discount || 0) > 0" class="receipt-row">
                   <span>Diskon:</span>
-                  <span>- {{ formatCurrency(lastSale.discount) }}</span>
+                  <span>- {{ formatCurrency(lastSale?.discount || 0) }}</span>
                 </div>
-                <div v-if="lastSale.tax > 0" class="receipt-row">
+                <div v-if="(lastSale?.tax || 0) > 0" class="receipt-row">
                   <span>Pajak:</span>
-                  <span>{{ formatCurrency(lastSale.tax) }}</span>
+                  <span>{{ formatCurrency(lastSale?.tax || 0) }}</span>
                 </div>
                 <div class="receipt-row total">
                   <span>TOTAL:</span>
-                  <span>{{ formatCurrency(lastSale.total) }}</span>
+                  <span>{{ formatCurrency(lastSale?.total || 0) }}</span>
                 </div>
               </div>
 
               <div class="receipt-section">
                 <div class="receipt-row">
                   <span>Metode Pembayaran:</span>
-                  <span>{{ lastSale.payment.method }}</span>
+                  <span>{{ lastSale?.payment?.method || '-' }}</span>
                 </div>
                 <div class="receipt-row">
                   <span>Dibayar:</span>
-                  <span>{{ formatCurrency(lastSale.payment.paidAmount) }}</span>
+                  <span>{{ formatCurrency(lastSale?.payment?.paidAmount || 0) }}</span>
                 </div>
-                <div v-if="lastSale.payment?.change > 0" class="receipt-row">
+                <div v-if="(lastSale?.payment?.change || 0) > 0" class="receipt-row">
                   <span>Kembalian:</span>
-                  <span>{{ formatCurrency(lastSale.payment.change) }}</span>
+                  <span>{{ formatCurrency(lastSale?.payment?.change || 0) }}</span>
                 </div>
               </div>
             </div>
