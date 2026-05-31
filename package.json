@@ -10,7 +10,7 @@
     "test:e2e": "cypress run",
     "test:unit": "vitest",
     "lint": "eslint .",
-    "postinstall": "cd backend && npm install && npx prisma generate"
+    "postinstall": "cd backend && npm install && npx prisma generate && npx prisma migrate deploy"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
