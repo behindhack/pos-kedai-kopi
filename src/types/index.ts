@@ -44,9 +44,10 @@ export type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED';
 
 export interface Sale {
   id: string;
-  orderNumber?: number;
+  orderNumber?: string;
   date: string;
   customerName?: string;
+  cashierName?: string;
   orderType: OrderType;
   items: CartItem[];
   subtotal: number;

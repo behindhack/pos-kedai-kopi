@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
+import { AuthRequest } from '../middlewares/auth.middleware.js';
 
-export const getSales = async (req: Request, res: Response) => {
+export const getSales = async (req: AuthRequest, res: Response) => {
   try {
     const { date, status } = req.query;
 
@@ -26,6 +27,7 @@ export const getSales = async (req: Request, res: Response) => {
         items: {
           include: { variants: true },
         },
+        user: { select: { name: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -34,6 +36,7 @@ export const getSales = async (req: Request, res: Response) => {
       id: s.id.toString(),
       orderNumber: s.orderNumber,
       customerName: s.customerName,
+      cashierName: s.user?.name || undefined,
       orderType: s.orderType,
       items: s.items.map((item) => ({
         product: {
@@ -72,7 +75,7 @@ export const getSales = async (req: Request, res: Response) => {
   }
 };
 
-export const createSale = async (req: Request, res: Response) => {
+export const createSale = async (req: AuthRequest, res: Response) => {
   try {
     const saleData = req.body;
 
@@ -127,6 +130,7 @@ export const createSale = async (req: Request, res: Response) => {
           changeAmount: changeAmount > 0 ? changeAmount : 0,
           date: queryDate,
           status: 'PENDING',
+          userId: req.user ? Number(req.user.id) : undefined,
           items: { create: itemsData },
         },
       });

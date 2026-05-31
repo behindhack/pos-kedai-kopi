@@ -12,6 +12,7 @@ export const useSalesStore = defineStore('sales', {
     discountAmount: 0, // Fixed discount amount in IDR
     isLoading: false,
     error: null as string | null,
+    pollingInterval: null as any,
   }),
 
   getters: {
@@ -56,6 +57,33 @@ export const useSalesStore = defineStore('sales', {
         this.error = error.message;
       } finally {
         this.isLoading = false;
+      }
+    },
+
+    startPolling() {
+      if (this.pollingInterval) return;
+      this.pollingInterval = setInterval(async () => {
+        try {
+          const result = await apiClient.getSalesReport();
+          if (!(result as any).error) {
+            const sortedSales = ((result.data?.sales || []) as Sale[]).sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+            // Only update if there is a difference in length or status to avoid UI flickering
+            if (JSON.stringify(this.dailySales) !== JSON.stringify(sortedSales)) {
+              this.dailySales = sortedSales;
+            }
+          }
+        } catch (e) {
+          // Ignore polling errors
+        }
+      }, 10000); // 10 seconds polling
+    },
+
+    stopPolling() {
+      if (this.pollingInterval) {
+        clearInterval(this.pollingInterval);
+        this.pollingInterval = null;
       }
     },
 
@@ -142,14 +170,8 @@ export const useSalesStore = defineStore('sales', {
         // Update array secara reaktif
         this.dailySales.unshift(sale);
 
-        // Notify other tabs (e.g. Barista)
-        try {
-          const bc = new BroadcastChannel('pos-sales-updates');
-          bc.postMessage({ type: 'NEW_SALE', saleId: sale.id });
-          bc.close();
-        } catch (e) {
-          console.warn('BroadcastChannel not supported');
-        }
+        // Fetch again to ensure consistency across network
+        this.loadSalesReport();
 
         this.clearCart();
         this.discountAmount = 0;
@@ -176,11 +198,8 @@ export const useSalesStore = defineStore('sales', {
         if (saleIndex !== -1) {
           this.dailySales[saleIndex].status = newStatus as any;
           
-          try {
-            const bc = new BroadcastChannel('pos-sales-updates');
-            bc.postMessage({ type: 'STATUS_UPDATE', saleId, status: newStatus });
-            bc.close();
-          } catch (e) {}
+          // Refresh list to ensure everything is up to date
+          this.loadSalesReport();
         }
       } catch (error) {
         console.error('Failed to update status', error);

@@ -6,14 +6,16 @@
 
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useTheme } from './composables/useTheme';
 import { useAuthStore } from './stores/auth';
+import { useSalesStore } from './stores/sales';
 
 const { applyTheme } = useTheme();
 const auth = useAuthStore();
+const sales = useSalesStore();
 
-onMounted(() => {
+onMounted(async () => {
   // Load theme preference
   const saved = localStorage.getItem('pos-dark-mode');
   if (saved === '1') {
@@ -23,6 +25,18 @@ onMounted(() => {
   }
 
   // Load auth state from storage
-  auth.loadFromStorage();
+  await auth.loadFromStorage();
+  
+  if (auth.isAuthenticated) {
+    sales.startPolling();
+  }
+});
+
+watch(() => auth.isAuthenticated, (isAuth) => {
+  if (isAuth) {
+    sales.startPolling();
+  } else {
+    sales.stopPolling();
+  }
 });
 </script>

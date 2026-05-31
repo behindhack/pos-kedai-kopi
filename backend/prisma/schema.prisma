@@ -62,6 +62,8 @@ model User {
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
+  sales                Sale[]
+
   @@map("users")
 }
 
@@ -138,10 +140,12 @@ model Sale {
   changeAmount Decimal       @map("change_amount") @db.Decimal(15, 2)
   status       SaleStatus    @default(PENDING)
   date         DateTime      @default(now())
+  userId       Int?          @map("user_id")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  items SaleItem[]
+  user         User?         @relation(fields: [userId], references: [id])
+  items        SaleItem[]
 
   @@map("sales")
 }
