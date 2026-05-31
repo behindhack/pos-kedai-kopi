@@ -13,7 +13,7 @@
 
           <div class="toolbar-actions">
             <!-- Unpaid Orders Shortcut -->
-            <ion-button fill="clear" color="danger" class="unpaid-btn" v-if="unpaidCount > 0" router-link="/tabs/pesanan" title="Ada tagihan belum lunas">
+            <ion-button fill="clear" color="danger" class="unpaid-btn" v-if="unpaidCount > 0" @click="openUnpaidModal" title="Ada tagihan belum lunas">
               <ion-icon :icon="walletOutline" slot="start"></ion-icon>
               {{ unpaidCount }} Belum Lunas
             </ion-button>
@@ -357,6 +357,105 @@
           </ion-button>
         </ion-content>
       </ion-modal>
+
+      <!-- Unpaid Bills List Modal -->
+      <ion-modal :is-open="showUnpaidModal" @didDismiss="closeUnpaidModal">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Daftar Tagihan (Belum Lunas)</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="closeUnpaidModal">Tutup</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <ion-list v-if="unpaidOrders.length > 0">
+            <ion-item v-for="order in unpaidOrders" :key="order.id" class="ion-margin-bottom" lines="full">
+              <ion-label>
+                <h2>#{{ String(order.id).slice(-4).toUpperCase() }} - {{ order.customerName || 'Walk-in' }}</h2>
+                <p>{{ new Date(order.date).toLocaleString('id-ID') }}</p>
+                <p>Status: <strong>{{ order.status }}</strong></p>
+                <h3 style="color: var(--ion-color-primary); font-weight: bold;">{{ formatCurrency(order.total) }}</h3>
+              </ion-label>
+              <ion-button slot="end" color="primary" @click="openSettlePayment(order)">
+                Bayar
+              </ion-button>
+            </ion-item>
+          </ion-list>
+          <div v-else class="empty-state">
+            <div class="empty-icon">✓</div>
+            <p>Tidak ada tagihan yang belum lunas.</p>
+          </div>
+        </ion-content>
+      </ion-modal>
+
+      <!-- Settle Unpaid Bill Modal -->
+      <ion-modal :is-open="showSettleModal" @didDismiss="closeSettleModal">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Pelunasan Tagihan</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="closeSettleModal">Batal</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding" v-if="orderToSettle">
+          <div class="receipt-summary ion-margin-bottom">
+            <div class="summary-item">
+              <span>Order</span>
+              <strong>#{{ String(orderToSettle.id).slice(-4).toUpperCase() }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Pelanggan</span>
+              <strong>{{ orderToSettle.customerName || 'Walk-in' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Total Tagihan</span>
+              <strong>{{ formatCurrency(orderToSettle.total) }}</strong>
+            </div>
+          </div>
+
+          <ion-item>
+            <ion-select
+              v-model="settleMethod"
+              label="Metode Pembayaran"
+              label-placement="stacked"
+            >
+              <ion-select-option value="CASH">Tunai</ion-select-option>
+              <ion-select-option value="QRIS">QRIS</ion-select-option>
+              <ion-select-option value="TRANSFER">Transfer</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item v-if="settleMethod === 'CASH'">
+            <ion-input
+              v-model.number="settleAmount"
+              type="number"
+              label="Jumlah Dibayar"
+              label-placement="stacked"
+              min="0"
+            />
+          </ion-item>
+
+          <ion-item v-if="settleMethod === 'CASH' && settleAmount >= orderToSettle.total">
+            <ion-label>Kembalian</ion-label>
+            <ion-note slot="end">
+              {{ formatCurrency(settleAmount - orderToSettle.total) }}
+            </ion-note>
+          </ion-item>
+
+          <ion-button 
+            expand="block" 
+            class="ion-margin-top" 
+            @click="confirmSettlePayment"
+            :disabled="isProcessing || (settleMethod === 'CASH' && settleAmount < orderToSettle.total)"
+          >
+            <ion-spinner name="crescent" v-if="isProcessing" slot="start"></ion-spinner>
+            Proses Pelunasan
+          </ion-button>
+        </ion-content>
+      </ion-modal>
+
     </ion-content>
   </ion-page>
 </template>
@@ -388,6 +487,7 @@ import {
   IonSelectOption,
   IonNote,
   IonIcon,
+  IonList,
   toastController,
 } from '@ionic/vue';
 import { sunnyOutline, moonOutline, printOutline, walletOutline } from 'ionicons/icons';
@@ -423,9 +523,17 @@ const showVariantModal = ref(false);
 const selectedProductForVariant = ref<Product | null>(null);
 const selectedVariantId = ref<string>('');
 
-const unpaidCount = computed(() => {
-  return sales.dailySales.filter(s => s.paymentStatus === 'UNPAID' && s.status !== 'COMPLETED').length;
+const unpaidOrders = computed(() => {
+  return sales.dailySales.filter(s => s.paymentStatus === 'UNPAID' && s.status !== 'COMPLETED');
 });
+
+const unpaidCount = computed(() => unpaidOrders.value.length);
+
+const showUnpaidModal = ref(false);
+const showSettleModal = ref(false);
+const orderToSettle = ref<Sale | null>(null);
+const settleMethod = ref<PaymentMethod>('CASH');
+const settleAmount = ref(0);
 
 const isProcessing = ref(false);
 
@@ -592,6 +700,73 @@ const closeReceipt = () => {
 const handlePrint = () => {
   if (lastSale.value) {
     printReceipt(lastSale.value, shopStore.settings);
+  }
+};
+
+const openUnpaidModal = () => {
+  sales.loadSalesReport(); // refresh data
+  showUnpaidModal.value = true;
+};
+
+const closeUnpaidModal = () => {
+  showUnpaidModal.value = false;
+};
+
+const openSettlePayment = (order: Sale) => {
+  orderToSettle.value = order;
+  settleMethod.value = 'CASH';
+  settleAmount.value = Math.ceil(order.total / 1000) * 1000;
+  showSettleModal.value = true;
+};
+
+const closeSettleModal = () => {
+  showSettleModal.value = false;
+  orderToSettle.value = null;
+};
+
+const confirmSettlePayment = async () => {
+  if (!orderToSettle.value || isProcessing.value) return;
+
+  isProcessing.value = true;
+  const toast = await toastController.create({
+    duration: 2000,
+    position: 'top',
+  });
+
+  try {
+    const finalAmount = settleMethod.value === 'CASH' ? settleAmount.value : orderToSettle.value.total;
+    
+    const result = await sales.payUnpaidSale(
+      orderToSettle.value.id, 
+      settleMethod.value, 
+      finalAmount
+    );
+    
+    if (result.success && result.sale) {
+      toast.message = `Pelunasan berhasil untuk #${String(result.sale.id).slice(-4).toUpperCase()}`;
+      toast.color = 'success';
+      lastSale.value = result.sale;
+      
+      closeSettleModal();
+      
+      // If no more unpaid orders, close the list modal too
+      if (unpaidCount.value <= 1) {
+        closeUnpaidModal();
+      }
+      
+      showReceipt.value = true;
+    } else {
+      toast.message = result.error || 'Pelunasan gagal';
+      toast.color = 'danger';
+    }
+    await toast.present();
+  } catch (error: any) {
+    console.error('Settle payment error:', error);
+    toast.message = 'Terjadi kesalahan sistem';
+    toast.color = 'danger';
+    await toast.present();
+  } finally {
+    isProcessing.value = false;
   }
 };
 </script>
