@@ -41,6 +41,12 @@ enum PaymentMethod {
   CASH
   QRIS
   TRANSFER
+  PAY_LATER
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
 }
 
 enum SaleStatus {
@@ -139,6 +145,7 @@ model Sale {
   paidAmount   Decimal       @map("paid_amount") @db.Decimal(15, 2)
   changeAmount Decimal       @map("change_amount") @db.Decimal(15, 2)
   status       SaleStatus    @default(PENDING)
+  paymentStatus PaymentStatus @default(PAID) @map("payment_status")
   date         DateTime      @default(now())
   userId       Int?          @map("user_id")
   createdAt    DateTime      @default(now()) @map("created_at")

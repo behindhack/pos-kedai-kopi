@@ -77,8 +77,13 @@
                   <span class="number">#{{ String(order.id).slice(-4).toUpperCase() }}</span>
                   <span class="time">{{ formatTime(order.createdAt) }}</span>
                 </div>
-                <div :class="['status-badge', order.status.toLowerCase()]">
-                  {{ getStatusLabel(order.status) }}
+                <div class="status-badges-container">
+                  <div :class="['status-badge', order.status.toLowerCase()]">
+                    {{ getStatusLabel(order.status) }}
+                  </div>
+                  <div v-if="order.paymentStatus === 'UNPAID'" class="status-badge unpaid">
+                    BELUM BAYAR
+                  </div>
                 </div>
               </div>
 
@@ -158,6 +163,20 @@
                   <ion-icon slot="start" :icon="checkmarkDoneCircleOutline" />
                   Selesai
                 </ion-button>
+
+                <!-- Pay Later Settlement Button -->
+                <ion-button
+                  v-if="order.paymentStatus === 'UNPAID'"
+                  expand="block"
+                  color="danger"
+                  size="small"
+                  class="action-btn"
+                  aria-label="Lakukan pelunasan untuk tagihan ini"
+                  @click="openPelunasanModal(order)"
+                >
+                  <ion-icon slot="start" :icon="walletOutline" />
+                  Bayar Tagihan
+                </ion-button>
               </div>
             </div>
           </ion-col>
@@ -173,6 +192,60 @@
       position="bottom"
       @didDismiss="showToast = false"
     />
+
+    <!-- Pelunasan Modal -->
+    <ion-modal :is-open="isPelunasanModalOpen" @didDismiss="closePelunasanModal">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Pelunasan Tagihan</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="closePelunasanModal">Batal</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" v-if="selectedUnpaidOrder">
+        <div class="pelunasan-details ion-margin-bottom">
+          <h3>Total Tagihan: {{ formatCurrency(selectedUnpaidOrder.total) }}</h3>
+          <p>Order #{{ String(selectedUnpaidOrder.id).slice(-4).toUpperCase() }} - {{ selectedUnpaidOrder.customerName || 'Walk-in' }}</p>
+        </div>
+
+        <ion-segment v-model="pelunasanMethod" class="ion-margin-bottom">
+          <ion-segment-button value="CASH">
+            <ion-label>Tunai</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="QRIS">
+            <ion-label>QRIS</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="TRANSFER">
+            <ion-label>Transfer</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
+        <ion-item v-if="pelunasanMethod === 'CASH'" class="ion-margin-bottom">
+          <ion-input
+            v-model.number="pelunasanAmount"
+            type="number"
+            label="Jumlah Dibayar"
+            label-placement="stacked"
+            min="0"
+            placeholder="0"
+          />
+        </ion-item>
+
+        <div v-if="pelunasanMethod === 'CASH' && pelunasanAmount > selectedUnpaidOrder.total" class="ion-margin-bottom">
+          <strong>Kembalian: {{ formatCurrency(pelunasanAmount - selectedUnpaidOrder.total) }}</strong>
+        </div>
+
+        <ion-button 
+          expand="block" 
+          @click="submitPelunasan" 
+          :disabled="isProcessingPelunasan || (pelunasanMethod === 'CASH' && pelunasanAmount < selectedUnpaidOrder.total)"
+        >
+          <ion-spinner name="crescent" v-if="isProcessingPelunasan" slot="start"></ion-spinner>
+          Proses Pelunasan
+        </ion-button>
+      </ion-content>
+    </ion-modal>
   </ion-page>
 </template>
 
@@ -189,6 +262,14 @@ import {
   IonIcon,
   IonToast,
   IonSpinner,
+  IonModal,
+  IonItem,
+  IonInput,
+  IonSegment,
+  IonSegmentButton,
+  IonLabel,
+  IonButtons,
+  IonTitle,
   onIonViewWillEnter,
   onIonViewWillLeave
 } from '@ionic/vue';
@@ -202,10 +283,11 @@ import {
   cafeOutline,
   sparklesOutline,
   documentTextOutline,
+  walletOutline,
 } from 'ionicons/icons';
 import { ref, computed } from 'vue';
 import { useSalesStore } from '../stores/sales';
-import { formatTime } from '../utils/formatters';
+import { formatTime, formatCurrency } from '../utils/formatters';
 import type { Sale } from '../types';
 
 const sales = useSalesStore();
@@ -230,6 +312,13 @@ interface OrderWithStatus extends Sale {
 
 const orders = ref<OrderWithStatus[]>([]);
 const isLoading = ref(true);
+
+// Pelunasan State
+const isPelunasanModalOpen = ref(false);
+const selectedUnpaidOrder = ref<OrderWithStatus | null>(null);
+const pelunasanMethod = ref<'CASH' | 'QRIS' | 'TRANSFER'>('CASH');
+const pelunasanAmount = ref(0);
+const isProcessingPelunasan = ref(false);
 
 let bc: BroadcastChannel | null = null;
 
@@ -367,6 +456,48 @@ const completeOrder = async (orderId: string) => {
     
     // Call the API to mark it completed
     await sales.updateOrderStatus(orderId, 'COMPLETED');
+  }
+};
+
+const openPelunasanModal = (order: OrderWithStatus) => {
+  selectedUnpaidOrder.value = order;
+  pelunasanMethod.value = 'CASH';
+  pelunasanAmount.value = Math.ceil(order.total / 1000) * 1000;
+  isPelunasanModalOpen.value = true;
+};
+
+const closePelunasanModal = () => {
+  isPelunasanModalOpen.value = false;
+  selectedUnpaidOrder.value = null;
+};
+
+const submitPelunasan = async () => {
+  if (!selectedUnpaidOrder.value || isProcessingPelunasan.value) return;
+  
+  isProcessingPelunasan.value = true;
+  try {
+    const finalAmount = pelunasanMethod.value === 'CASH' ? pelunasanAmount.value : selectedUnpaidOrder.value.total;
+    
+    const result = await sales.payUnpaidSale(
+      selectedUnpaidOrder.value.id, 
+      pelunasanMethod.value, 
+      finalAmount
+    );
+    
+    if (result.success) {
+      toastMessage.value = `Pelunasan berhasil untuk #${String(selectedUnpaidOrder.value.id).slice(-4).toUpperCase()}`;
+      showToast.value = true;
+      closePelunasanModal();
+      await loadOrders(false);
+    } else {
+      toastMessage.value = result.error || 'Pelunasan gagal';
+      showToast.value = true;
+    }
+  } catch (error: any) {
+    toastMessage.value = 'Terjadi kesalahan sistem';
+    showToast.value = true;
+  } finally {
+    isProcessingPelunasan.value = false;
   }
 };
 </script>
@@ -564,6 +695,13 @@ const completeOrder = async (orderId: string) => {
   color: var(--app-muted);
 }
 
+.status-badges-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
 .status-badge {
   padding: 6px 12px;
   border-radius: 20px;
@@ -586,6 +724,12 @@ const completeOrder = async (orderId: string) => {
 .status-badge.ready {
   background: #10b981;
   color: #ffffff;
+}
+
+.status-badge.unpaid {
+  background: #e91e63;
+  color: #ffffff;
+  border: 1px solid #c2185b;
 }
 
 .customer-info {

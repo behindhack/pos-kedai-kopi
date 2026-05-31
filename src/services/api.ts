@@ -212,6 +212,15 @@ class APIClient {
     }
   }
 
+  async paySale(id: string, paymentMethod: string, paidAmount: number) {
+    try {
+      const response = await axiosInstance.put(`/sales/${id}/pay`, { paymentMethod, paidAmount });
+      return { data: { sale: response.data }, error: null };
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
   // ==========================================
   // INVENTORY (RAW MATERIALS)
   // ==========================================

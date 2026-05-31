@@ -125,6 +125,9 @@
                   <ion-segment-button value="TRANSFER">
                     <ion-label>Transfer</ion-label>
                   </ion-segment-button>
+                  <ion-segment-button value="PAY_LATER">
+                    <ion-label>Nanti</ion-label>
+                  </ion-segment-button>
                 </ion-segment>
 
                 <!-- Cash Payment -->
@@ -151,11 +154,14 @@
                   </div>
                 </div>
 
-                <!-- QRIS/Transfer Info -->
+                <!-- QRIS/Transfer/Pay Later Info -->
                 <div v-else class="payment-info">
                   <ion-note>
                     <p v-if="selectedPaymentMethod === 'QRIS'">
                       Tunjukkan kode QRIS Anda untuk pembayaran
+                    </p>
+                    <p v-else-if="selectedPaymentMethod === 'PAY_LATER'">
+                      Tagihan akan disimpan. Pesanan langsung masuk dapur.
                     </p>
                     <p v-else>
                       Total transfer: <strong>{{ formatCurrency(sales.total) }}</strong>
@@ -203,9 +209,9 @@
             </div>
             <div class="summary-item">
               <span>Metode</span>
-              <strong>{{ lastSale.payment.method }}</strong>
+              <strong>{{ lastSale.payment.method === 'PAY_LATER' ? 'Belum Bayar' : lastSale.payment.method }}</strong>
             </div>
-            <div v-if="lastSale.payment?.change > 0" class="summary-item">
+            <div v-if="lastSale.payment?.change > 0 && lastSale.payment.method === 'CASH'" class="summary-item">
               <span>Kembalian</span>
               <strong>{{ formatCurrency(lastSale.payment.change) }}</strong>
             </div>
@@ -381,7 +387,8 @@ const processPayment = async () => {
   isProcessing.value = true;
 
   try {
-    const result = await sales.finalizeSale(selectedPaymentMethod.value, amountPaid.value);
+    const finalAmountPaid = selectedPaymentMethod.value === 'PAY_LATER' ? 0 : amountPaid.value;
+    const result = await sales.finalizeSale(selectedPaymentMethod.value, finalAmountPaid);
 
     if (result.success && result.sale) {
       lastSale.value = result.sale;

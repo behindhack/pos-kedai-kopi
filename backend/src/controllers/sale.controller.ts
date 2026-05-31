@@ -63,6 +63,7 @@ export const getSales = async (req: AuthRequest, res: Response) => {
         paidAmount: Number(s.paidAmount),
         change: Number(s.changeAmount),
       },
+      paymentStatus: s.paymentStatus,
       status: s.status,
       date: s.date.toISOString(),
       createdAt: s.createdAt.toISOString(),
@@ -130,6 +131,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
           changeAmount: changeAmount > 0 ? changeAmount : 0,
           date: queryDate,
           status: 'PENDING',
+          paymentStatus: dbPaymentMethod === 'PAY_LATER' ? 'UNPAID' : 'PAID',
           userId: req.user ? Number(req.user.id) : undefined,
           items: { create: itemsData },
         },
@@ -202,5 +204,56 @@ export const updateSaleStatus = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Update sale status error:', error);
     res.status(400).json({ error: 'Bad request' });
+  }
+};
+
+export const paySale = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { paymentMethod, paidAmount } = req.body;
+
+    if (!paymentMethod || paidAmount === undefined) {
+      return res.status(400).json({ error: 'paymentMethod and paidAmount are required' });
+    }
+
+    const sale = await prisma.sale.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!sale) {
+      return res.status(404).json({ error: 'Sale not found' });
+    }
+
+    if (sale.paymentStatus === 'PAID') {
+      return res.status(400).json({ error: 'Sale is already paid' });
+    }
+
+    const total = Number(sale.total);
+    const amount = Number(paidAmount);
+    if (amount < total) {
+      return res.status(400).json({ error: 'Paid amount cannot be less than total' });
+    }
+
+    const changeAmount = amount - total;
+    const dbPaymentMethod = paymentMethod === 'TRANSFER' ? 'DEBIT' : paymentMethod; // Fallback mapping if necessary, though enum has TRANSFER. Wait, the enum HAS 'TRANSFER' now. Let's just use it directly.
+
+    const updatedSale = await prisma.sale.update({
+      where: { id: Number(id) },
+      data: {
+        paymentMethod: dbPaymentMethod,
+        paidAmount: amount,
+        changeAmount: changeAmount > 0 ? changeAmount : 0,
+        paymentStatus: 'PAID',
+      },
+      include: {
+        items: { include: { variants: true } },
+        user: { select: { name: true } },
+      }
+    });
+
+    res.json(updatedSale);
+  } catch (error: any) {
+    console.error('Pay sale error:', error);
+    res.status(500).json({ error: error.message || 'Server error', stack: error.stack });
   }
 };

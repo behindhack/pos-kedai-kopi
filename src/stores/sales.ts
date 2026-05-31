@@ -204,6 +204,22 @@ export const useSalesStore = defineStore('sales', {
       } catch (error) {
         console.error('Failed to update status', error);
       }
+    },
+    
+    async payUnpaidSale(saleId: string, paymentMethod: string, paidAmount: number) {
+      try {
+        const result = await apiClient.paySale(saleId, paymentMethod, paidAmount);
+        if ((result as any).error) {
+          throw new Error((result as any).error);
+        }
+        
+        // Refresh list to ensure everything is up to date
+        this.loadSalesReport();
+        return { success: true, sale: result.data?.sale };
+      } catch (error: any) {
+        console.error('Failed to pay unpaid sale', error);
+        return { success: false, error: error.message };
+      }
     }
   },
 });

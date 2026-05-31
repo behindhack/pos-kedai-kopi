@@ -32,7 +32,7 @@ export interface CartItem {
   note?: string;
 }
 
-export type PaymentMethod = 'CASH' | 'QRIS' | 'TRANSFER';
+export type PaymentMethod = 'CASH' | 'QRIS' | 'TRANSFER' | 'PAY_LATER';
 
 export interface Payment {
   method: PaymentMethod;
@@ -56,6 +56,7 @@ export interface Sale {
   total: number;
   payment: Payment;
   status?: OrderStatus;
+  paymentStatus?: 'UNPAID' | 'PAID';
 }
 
 export interface ShopSettings {
